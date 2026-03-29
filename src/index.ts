@@ -3,7 +3,6 @@ import { config } from 'dotenv'
 import { createServer } from 'http'
 import logger from '@/misc/logger'
 import { initMcpServers } from '@/foundation/mcp-server'
-import { initWebVoiceChannel } from '@/service/web-voice'
 import { initTwilioPhoneChannel } from '@/service/twilio-phone'
 import { initAmazonConnectPhoneChannel } from '@/service/amazon-connect-phone'
 import { registerStatusRoutes } from '@/misc/status-routes'
@@ -23,12 +22,11 @@ const startServices = async () => {
 
   initTwilioPhoneChannel(app, httpServer)
   initAmazonConnectPhoneChannel(app)
-  initWebVoiceChannel(httpServer)
   initMcpServers(app, PORT)
 
   httpServer.listen(PORT, () => {
     logger.info(
-      `[Server] Check status page: http://localhost:${PORT}/status (urls, webhooks, MCP endpoints)`
+      `[Server] Check status page: http://localhost:${PORT}/status (Twilio, OpenAI SIP webhook, MCP)`
     )
     logger.info('[Server] Server started successfully')
   })

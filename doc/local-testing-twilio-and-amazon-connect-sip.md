@@ -18,7 +18,7 @@ This guide explains how to exercise the **two phone-related channels** of this r
 1. Twilio requests **TwiML** from your server: `POST/GET https://<host>/incoming-call`
 2. Twilio opens a **WebSocket** to `TWILIO_WEBHOOK_URL` (must be `wss://...` in production; for local tunnels, `wss://<same-ngrok-host>/media-stream`)
 
-### Environment (`backend/.env`)
+### Environment (`.env`)
 
 ```env
 TWILIO_PHONE_ENABLE=true
@@ -51,8 +51,8 @@ Set `TWILIO_WEBHOOK_URL` to that `wss://.../media-stream` value.
 - Place a test call to the Twilio number.
 - Backend logs should show `[TwilioPhone]` lines and MCP/OpenAI connection logs.
 - Implementation entry points:
-  - `backend/src/service/twilio-phone/` (`initTwilioPhoneChannel`)
-  - `backend/src/foundation/websocket/endpoints/twilio-phone/`
+  - `src/service/twilio-phone/` (`initTwilioPhoneChannel`)
+  - `src/foundation/websocket/endpoints/twilio-phone/`
 
 ---
 
@@ -63,9 +63,9 @@ This path is **different from Twilio**: audio goes **Connect → OpenAI over SIP
 ### What gets hit
 
 - **OpenAI** sends `POST https://<your-backend>/amazon-connect-openai-voice-agent/incoming-call` (unless you change `AMAZON_CONNECT_PHONE_WEBHOOK_BASE_PATH`)
-- Your app responds and drives the call via the Realtime Calls API (see `backend/src/service/amazon-connect-phone/openai-sip-webhook/`)
+- Your app responds and drives the call via the Realtime Calls API (see `src/service/amazon-connect-phone/openai-sip-webhook/`)
 
-### Environment (`backend/.env`)
+### Environment (`.env`)
 
 ```env
 AMAZON_CONNECT_PHONE_ENABLE=true
@@ -111,9 +111,9 @@ Use AWS and OpenAI documentation as the source of truth for trunk FQDN, authenti
 
 ### Code map
 
-- Channel bootstrap: `backend/src/service/amazon-connect-phone/index.ts` (`initAmazonConnectPhoneChannel`)
-- Webhook + accept + WS: `backend/src/service/amazon-connect-phone/openai-sip-webhook/`
-- Connect SDK helper: `backend/src/foundation/amazon-connect/`
+- Channel bootstrap: `src/service/amazon-connect-phone/index.ts` (`initAmazonConnectPhoneChannel`)
+- Webhook + accept + WS: `src/service/amazon-connect-phone/openai-sip-webhook/`
+- Connect SDK helper: `src/foundation/amazon-connect/`
 
 ---
 
@@ -128,8 +128,4 @@ Use AWS and OpenAI documentation as the source of truth for trunk FQDN, authenti
 
 ---
 
-## 4. Web voice (no tunnel)
-
-Browser UI uses Socket.IO on `/realtime-voice`; local testing is just frontend + backend on `localhost` — no tunnel required unless the browser is on another device.
-
-See also: [Backend architecture](./backend-voice-ai-agent-design.md) and [Amazon Connect + OpenAI webhook](../backend/docs/amazon-connect-openai-webhook.md).
+See also: [Architecture](./ai-phone-agent-architecture.md) and [Amazon Connect + OpenAI webhook](./amazon-connect-openai-webhook.md).

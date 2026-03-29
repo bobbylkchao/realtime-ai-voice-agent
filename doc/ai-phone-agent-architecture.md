@@ -1,4 +1,4 @@
-# Realtime Voice AI Agent Architecture
+# AI Phone Agent — Architecture
 
 ## Table of Contents
 
@@ -23,7 +23,7 @@
 9. [Session Lifecycle](#session-lifecycle)
 10. [Error Handling](#error-handling)
 11. [Future Enhancements](#future-enhancements)
-12. [Backend repository layout](#backend-repository-layout)
+12. [Repository layout](#repository-layout)
 13. [Status dashboard](#status-dashboard)
 
 ## Overview
@@ -39,82 +39,21 @@ This system implements a realtime voice AI agent platform using OpenAI's Realtim
 - **Agent-to-Agent Communication**: Agents can delegate tasks to specialized agents
 - **Voice Activity Detection**: Server-side VAD for natural conversation flow
 - **Amazon Connect + OpenAI SIP** (optional): HTTP webhook for `realtime.call.incoming`, accept/hangup REST, and client WebSocket for tool calls
-- **Status dashboard** (`GET /status`, `GET /status.json`): HTML or JSON view of enabled channels (web, Twilio phone, Amazon Connect phone, Connect SDK) and MCP URLs; implementation in `backend/src/misc/status-routes.ts`
+- **Status dashboard** (`GET /status`, `GET /status.json`): HTML or JSON view of enabled channels (Twilio phone, Amazon Connect phone, Connect SDK) and MCP URLs; implementation in `src/misc/status-routes.ts`
 
 ## System Architecture
 
+Phone-first layout: **Twilio** (`/incoming-call` + `/media-stream`) and/or **Amazon Connect + OpenAI SIP** (HTTPS webhook + OpenAI Realtime WebSocket). Shared **OpenAI agents**, **MCP** HTTP tool servers, optional **Amazon Connect SDK** for contact attributes.
+
 ```
-┌─────────────────┐
-│  Web Client     │
-└────────┬────────┘
-         │ WebSocket
-         │ /realtime-voice (Socket.IO)
-         ▼
-┌─────────────────┐                    ┌─────────────────┐
-│ WebSocket      │                    │ Twilio Phone    │
-│ Server         │                    │ Call            │
-│ (Socket.IO)    │                    └────────┬────────┘
-└─────────────────┘                          │
-         │                                    │ HTTP POST
-         │                                    │ /incoming-call
-         │                                    │
-         │                          ┌────────▼────────┐
-         │                          │ Twilio HTTP     │
-         │                          │ Route Handler   │
-         │                          └────────┬────────┘
-         │                                    │
-         │                                    │ WebSocket
-         │                                    │ /media-stream
-         │                                    │ (Native WS)
-         │                                    ▼
-         │                          ┌─────────────────┐
-         │                          │ Twilio WebSocket│
-         │                          │ Server          │
-         └──────────────────────────┼─────────────────┘
-                                    │
-                                    │ TwilioRealtimeTransportLayer
-                                    │
-                                    ▼
-                          ┌─────────────────┐
-                          │ Voice Session   │
-                          │ Manager         │
-                          │ / Phone Session │
-                          │ Manager         │
-                          └────────┬────────┘
-                                   │
-                                   ▼
-                          ┌─────────────────┐
-                          │ RealtimeSession │
-                          │ (per client/call)│
-                          └────────┬─────────┘
-                                   │
-                                   ▼
-                          ┌─────────────────┐
-                          │ Front Desk      │
-                          │ Agent           │
-                          └────────┬────────┘
-                                   │
-            ┌──────────────────────┼──────────────────────┐
-            │                      │                      │
-            ▼                      ▼                      ▼
-    ┌─────────────┐        ┌─────────────┐        ┌─────────────┐
-    │ Hotel       │        │ Flight      │        │ Car Rental  │
-    │ Booking     │        │ Booking     │        │ Booking     │
-    │ Agent       │        │ Agent       │        │ Agent       │
-    └─────────────┘        └─────────────┘        └─────────────┘
-            │                      │                      │
-            └──────────────────────┼──────────────────────┘
-                                   │
-                                   ▼
-                          ┌─────────────────┐
-                          │ MCP Servers     │
-                          │ (Tools)         │
-                          └─────────────────┘
+Twilio PSTN ──► /incoming-call (TwiML) ──► /media-stream (WS) ──► TwilioRealtimeTransportLayer ──► RealtimeSession + agents + MCP
+
+Amazon Connect ──► OpenAI SIP ──► your POST .../incoming-call ──► accept + WSS to OpenAI ──► tools (e.g. handoff)
 ```
 
 ## Amazon Connect and OpenAI SIP Webhook
 
-When **Amazon Connect** (or another SIP provider) routes calls into **OpenAI Realtime SIP**, OpenAI delivers a **`realtime.call.incoming`** event to your HTTPS endpoint. This project implements that flow under `backend/src/service/amazon-connect-phone/openai-sip-webhook/`, following the same directory pattern as `phone-sales-ai-copilot`’s `phone-sales-ai-voice-agent` service (`webhook/`, `handle-call/`, `websocket/`, `client-side-events/`, `tools/`, `agents/`).
+When **Amazon Connect** (or another SIP provider) routes calls into **OpenAI Realtime SIP**, OpenAI delivers a **`realtime.call.incoming`** event to your HTTPS endpoint. This project implements that flow under `src/service/amazon-connect-phone/openai-sip-webhook/`, following the same directory pattern as `phone-sales-ai-copilot`’s `phone-sales-ai-voice-agent` service (`webhook/`, `handle-call/`, `websocket/`, `client-side-events/`, `tools/`, `agents/`).
 
 ### Request flow
 
@@ -132,15 +71,14 @@ Amazon Connect → OpenAI SIP → POST /amazon-connect-openai-voice-agent/incomi
 - Set `AMAZON_CONNECT_PHONE_ENABLE=true` and configure OpenAI to send webhooks to `{BASE_PATH}/incoming-call`.
 - Optional: `AMAZON_CONNECT_SDK_ENABLE=true` plus AWS credentials and `AMAZON_CONNECT_INSTANCE_ID` so tools such as `disconnect_the_call` and `transfer_to_human_agent` can call **UpdateContactAttributes** (e.g. `AIVoiceAgentHandoff` JSON on transfer).
 
-### Relationship to Twilio and web clients
+### Relationship to Twilio and Connect
 
 | Path | Use case |
 |------|-----------|
-| Socket.IO `/realtime-voice` | Browser audio |
 | Native WS `/media-stream` | Twilio Media Streams |
-| HTTP `.../incoming-call` | OpenAI SIP / Connect webhook |
+| HTTP `.../incoming-call` | Twilio TwiML **or** OpenAI SIP / Connect webhook (different deployments) |
 
-Detailed setup and customization notes: [backend/docs/amazon-connect-openai-webhook.md](../backend/docs/amazon-connect-openai-webhook.md).  
+Detailed setup and customization notes: [amazon-connect-openai-webhook.md](./amazon-connect-openai-webhook.md).  
 Local tunnel testing: [local-testing-twilio-and-amazon-connect-sip.md](./local-testing-twilio-and-amazon-connect-sip.md).
 
 ## Core Components
@@ -155,7 +93,7 @@ The OpenAI Realtime Agent is the foundation of our voice interaction system. Eac
 - **Tools**: Other agents that can be invoked as tools
 - **MCP Servers**: External tool providers via Model Context Protocol
 
-**Implementation Location**: `backend/src/foundation/open-ai/agents/`
+**Implementation Location**: `src/foundation/open-ai/agents/`
 
 **Key Configuration**:
 - Model: `gpt-realtime-1.5` (default via `OPENAI_MODEL` in `.env`; override as needed)
@@ -217,28 +155,7 @@ Each user connection gets a dedicated `RealtimeSession` instance that manages:
 
 ### Multiple Sessions Management
 
-The `VoiceSessionManager` class manages multiple concurrent user sessions:
-
-**Implementation**: `backend/src/foundation/open-ai/session-manager/voice-session-manger.ts`
-
-**Key Features**:
-- **Session Map**: `Map<clientId, RealtimeSession>` for O(1) session lookup
-- **Per-Session MCP Servers**: Each session has its own MCP server connections
-- **Graceful Cleanup**: Properly closes sessions and MCP connections on disconnect
-
-**Session Operations**:
-- `createUserSession(socket)`: Creates a new session for a client
-- `getUserSession(clientId)`: Retrieves an existing session
-- `closeUserSession(clientId)`: Closes session and cleans up resources
-
-**Lifecycle Flow**:
-1. Client connects via WebSocket
-2. Client sends `SESSION_START` event
-3. System creates `RealtimeSession` with agent configuration
-4. MCP servers connect and register with the session
-5. Session establishes connection to OpenAI Realtime API
-6. Audio streaming begins
-7. On disconnect, session and MCP connections close
+Twilio and Amazon Connect paths each maintain **per-call** `RealtimeSession` (or equivalent) on the OpenAI side; there is no separate browser `VoiceSessionManager` in this repository (phone-only scope).
 
 ## Multi-Agent System
 
@@ -257,9 +174,9 @@ Each agent can:
 
 ### Agent Types
 
-#### 1. Front Desk Agent
+#### 1. Front Desk Agent (phone)
 
-**Location**: `backend/src/foundation/open-ai/agents/realtime-voice/front-desk-agent/index.ts`
+**Location**: `src/foundation/open-ai/agents/realtime-phone/front-desk-agent/index.ts` (Twilio path; Connect SIP uses dedicated prompts under `openai-sip-webhook/agents/`)
 
 **Responsibilities**:
 - Primary point of contact for users
@@ -280,7 +197,7 @@ Each agent can:
 
 #### 2. Hotel Booking Agent
 
-**Location**: `backend/src/foundation/open-ai/agents/general-agents/hotel-booking-agent/index.ts`
+**Location**: `src/foundation/open-ai/agents/general-agents/hotel-booking-agent/index.ts`
 
 **Responsibilities**:
 - Specialized hotel booking assistance
@@ -291,7 +208,7 @@ Each agent can:
 
 #### 3. Flight Booking Agent
 
-**Location**: `backend/src/foundation/open-ai/agents/general-agents/flight-booking-agent/index.ts`
+**Location**: `src/foundation/open-ai/agents/general-agents/flight-booking-agent/index.ts`
 
 **Responsibilities**:
 - Specialized flight booking assistance
@@ -302,7 +219,7 @@ Each agent can:
 
 #### 4. Car Rental Booking Agent
 
-**Location**: `backend/src/foundation/open-ai/agents/general-agents/car-rental-booking-agent/index.ts`
+**Location**: `src/foundation/open-ai/agents/general-agents/car-rental-booking-agent/index.ts`
 
 **Responsibilities**:
 - Specialized car rental booking assistance
@@ -313,7 +230,7 @@ Each agent can:
 
 #### 5. Post Booking Agent
 
-**Location**: `backend/src/foundation/open-ai/agents/general-agents/post-booking-agent/index.ts`
+**Location**: `src/foundation/open-ai/agents/general-agents/post-booking-agent/index.ts`
 
 **Responsibilities**:
 - Help with existing bookings
@@ -404,7 +321,7 @@ Model Context Protocol (MCP) servers provide external tool capabilities to agent
 
 The system supports multiple MCP servers per session:
 
-**Implementation**: `backend/src/foundation/mcp-server/index.ts`
+**Implementation**: `src/foundation/mcp-server/index.ts`
 
 **Current MCP Servers**:
 
@@ -482,41 +399,13 @@ mcpServer.registerTool(
 
 ## WebSocket Communication
 
-The WebSocket layer provides the communication bridge between clients and the voice AI system:
-
-**Implementation**: `backend/src/foundation/websocket/index.ts` (used by `service/web-voice` and `service/twilio-phone`).
-
-### Web Client WebSocket
-
-**Configuration**:
-- Transport: WebSocket only (no polling fallback)
-- Path: `/realtime-voice`
-- CORS: Configured for cross-origin access
-- Library: Socket.IO
-
-**Message Types**:
-
-**Client → Server**:
-- `SESSION_START`: Initialize a new voice session
-- `SESSION_END`: Terminate the current session
-- `USER_AUDIO_CHUNK`: Send audio data (ArrayBuffer)
-
-**Server → Client**:
-- `SESSION_START_SUCCESS`: Session created successfully
-- `SESSION_START_ERROR`: Session creation failed
-- `SESSION_END_SUCCESS`: Session closed successfully
-- `SESSION_END_ERROR`: Session close failed
-- `USER_AUDIO_TRANSCRIPT`: Transcription of user speech
-- `ASSISTANT_AUDIO_TRANSCRIPT`: Transcription of assistant speech
-- `ASSISTANT_AUDIO_CHUNK`: Audio data from assistant (ArrayBuffer)
-
-**Event Handling**: `backend/src/foundation/websocket/endpoints/web-voice/handler.ts` (`handleWebVoiceChannelEvent`)
+**Implementation**: `src/foundation/websocket/index.ts` exposes Twilio Media Stream WebSocket setup only (`initTwilioPhoneMediaStreamWebSocket`).
 
 ### Twilio Media Stream WebSocket
 
 The system supports integration with Twilio for phone-based voice interactions:
 
-**Implementation**: `backend/src/service/twilio-phone/index.ts` and `backend/src/foundation/websocket/endpoints/twilio-phone/` (`initTwilioPhoneMediaStreamWebSocketServer`)
+**Implementation**: `src/service/twilio-phone/index.ts` and `src/foundation/websocket/endpoints/twilio-phone/` (`initTwilioPhoneMediaStreamWebSocketServer`)
 
 **Configuration**:
 - Transport: Native WebSocket (using `ws` library)
@@ -541,7 +430,7 @@ Phone Call → Twilio → /incoming-call (HTTP POST)
 
 **Components**:
 
-1. **HTTP Route Handler** (`backend/src/service/twilio-phone/http-route.ts` — `initTwilioPhoneHttpRoute`):
+1. **HTTP Route Handler** (`src/service/twilio-phone/http-route.ts` — `initTwilioPhoneHttpRoute`):
    - Endpoint: `/incoming-call`
    - Method: `ALL` (handles GET/POST)
    - Returns: TwiML XML response
@@ -597,45 +486,14 @@ Phone Call → Twilio → /incoming-call (HTTP POST)
 - Reduces client complexity
 - Better accuracy with server-side processing
 
-### Audio Streaming Flow
+### Audio streaming (Twilio path)
 
-```
-Client Mic → WebSocket → handleWebVoiceChannelEvent → 
-RealtimeSession.sendAudio() → OpenAI Realtime API
+Media streams flow through **Twilio** ↔ **`TwilioRealtimeTransportLayer`** ↔ **OpenAI Realtime** (see `foundation/websocket/endpoints/twilio-phone/handler.ts`). The Amazon Connect path uses OpenAI’s SIP + your control-plane WebSocket to OpenAI (no browser).
 
-OpenAI Realtime API → RealtimeSession.on('audio') → 
-WebSocket → Client Speaker
-```
+## Session lifecycle (summary)
 
-## Session Lifecycle
-
-### Session Creation
-
-1. **Client Connection**: WebSocket connection established
-2. **Session Start Event**: Client sends `SESSION_START`
-3. **MCP Server Connection**: Connect to all configured MCP servers
-4. **Agent Initialization**: Create Front Desk Agent with MCP servers
-5. **RealtimeSession Creation**: Initialize with agent and configuration
-6. **OpenAI Connection**: Connect to OpenAI Realtime API
-7. **Event Handlers**: Register event listeners
-8. **Session Storage**: Store session in `VoiceSessionManager`
-
-### Session Active State
-
-- **Audio Streaming**: Continuous bidirectional audio
-- **Event Processing**: Handle transport events, transcripts, audio chunks
-- **Agent Interaction**: Agent processes user input, generates responses
-- **Tool Invocation**: Agents call tools and other agents as needed
-
-### Session Termination
-
-1. **Client Disconnect**: WebSocket disconnection event
-2. **Session Close**: Call `session.close()` to disconnect from OpenAI
-3. **MCP Server Cleanup**: Close all MCP server connections for the session
-4. **Resource Cleanup**: Remove session from storage maps
-5. **Logging**: Log session closure events
-
-**Implementation**: `VoiceSessionManager.closeUserSession()`
+- **Twilio**: Per-call `RealtimeSession` lives for the lifetime of the `/media-stream` WebSocket; MCP connects in the background per the Twilio handler.
+- **Connect SIP**: Per-call state in `openai-sip-webhook` (accept → client WS → tools); hangup ends the OpenAI call leg.
 
 ## Error Handling
 
@@ -734,47 +592,42 @@ try {
    - Audio quality optimization
    - Echo cancellation
 
-## Backend repository layout
+## Repository layout
 
-The backend separates **entry channels** (browser vs phone/PSTN) from **shared infrastructure**:
+**Entry channels** (phone) vs **shared infrastructure**:
 
 | Layer | Path | Role |
 |--------|------|------|
-| **Web voice** | `backend/src/service/web-voice/` | Browser channel; calls `initWebVoiceChannel` → Socket.IO `/realtime-voice` |
-| **Twilio phone** | `backend/src/service/twilio-phone/` | PSTN via Twilio; TwiML `/incoming-call` + WS `/media-stream` |
-| **Amazon Connect phone** | `backend/src/service/amazon-connect-phone/` | PSTN via Connect + OpenAI SIP; webhook + Realtime WS (`openai-sip-webhook/`) |
-| **Foundation** | `backend/src/foundation/` | Shared **open-ai** (agents, session manager, REST helpers), **mcp-server**, **websocket** servers, **amazon-connect** SDK |
+| **Twilio phone** | `src/service/twilio-phone/` | PSTN via Twilio; TwiML `/incoming-call` + WS `/media-stream` |
+| **Amazon Connect phone** | `src/service/amazon-connect-phone/` | PSTN via Connect + OpenAI SIP; webhook + Realtime WS (`openai-sip-webhook/`) |
+| **Foundation** | `src/foundation/` | Shared **open-ai** agents & helpers, **mcp-server**, **websocket** (Twilio), **amazon-connect** SDK |
 
-TypeScript path alias: `@/*` → `src/*` (same idea as `phone-sales-ai-copilot`). Production builds run `tsc` then **`tsc-alias`** so `require()` paths resolve under `dist/`.
+TypeScript path alias: `@/*` → `src/*`. Production builds run `tsc` then **`tsc-alias`**.
 
-Entry point `backend/src/index.ts` wires the three channels and MCP:
+Entry point `src/index.ts` wires **phone channels** and MCP:
 
 - `initTwilioPhoneChannel(app, httpServer)`
 - `initAmazonConnectPhoneChannel(app)`
-- `initWebVoiceChannel(httpServer)`
 - `initMcpServers(app, PORT)`
 
-**WebSocket implementation names**
+**WebSocket**
 
-- Web: `initWebVoiceSocketIOServer`, handler `handleWebVoiceChannelEvent` (`foundation/websocket/endpoints/web-voice/`).
-- Twilio phone: `initTwilioPhoneMediaStreamWebSocket` → `initTwilioPhoneMediaStreamWebSocketServer`, handler `handleTwilioPhoneMediaStreamConnection` (`foundation/websocket/endpoints/twilio-phone/`).
+- Twilio: `initTwilioPhoneMediaStreamWebSocket` → `initTwilioPhoneMediaStreamWebSocketServer`, handler `handleTwilioPhoneMediaStreamConnection` (`foundation/websocket/endpoints/twilio-phone/`).
 
 ## Status dashboard
 
-The backend exposes a small operational page for local development and demos:
-
 | Route | Content |
 |-------|---------|
-| `GET /status` | HTML page listing each channel (HTTP, web voice Socket.IO, Twilio phone, Amazon Connect phone webhook, Connect SDK flag) with **Ready** / **Off** and resolved URLs using the request **Host** (works behind tunnels). |
+| `GET /status` | HTML page listing each channel (HTTP, Twilio phone, Amazon Connect phone webhook, Connect SDK flag) with **Ready** / **Off** and resolved URLs using the request **Host** (works behind tunnels). |
 | `GET /status.json` | Same information as JSON for scripts or monitoring. |
 
-**Implementation**: `backend/src/misc/status-routes.ts` (`registerStatusRoutes` is registered from `backend/src/index.ts`). On listen, the server logs one line pointing to `/status` and describing that it aggregates ready channel URLs, webhooks, and MCP endpoints.
+**Implementation**: `src/misc/status-routes.ts` (`registerStatusRoutes` is registered from `src/index.ts`). On listen, the server logs one line pointing to `/status` and describing that it aggregates ready channel URLs, webhooks, and MCP endpoints.
 
 ## Technical Stack
 
 - **Runtime**: Node.js (>=16.0.0)
 - **Framework**: Express.js
-- **WebSocket**: Socket.IO (web clients), native WebSocket via `ws` (Twilio)
+- **WebSocket**: Native WebSocket via `ws` (Twilio Media Streams)
 - **AI Platform**: OpenAI Realtime API
 - **Agent Framework**: @openai/agents, @openai/agents-realtime
 - **Twilio Integration**: @openai/agents-extensions (TwilioRealtimeTransportLayer)

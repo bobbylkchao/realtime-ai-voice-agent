@@ -24,7 +24,6 @@ const publicBase = (req: Request, port: number): string => {
 
 export const buildStatusPayload = (req: Request, port: number) => {
   const base = publicBase(req, port)
-  const wsBase = base.replace(/^http/, 'ws')
 
   const twilioEnabled =
     process.env.TWILIO_PHONE_ENABLE === 'true' &&
@@ -45,15 +44,6 @@ export const buildStatusPayload = (req: Request, port: number) => {
       name: 'HTTP server',
       ready: true,
       endpoints: [{ label: 'Base URL', url: base }],
-    },
-    {
-      id: 'web-voice',
-      name: 'Web voice (browser)',
-      ready: true,
-      detail: 'Socket.IO',
-      endpoints: [
-        { label: 'Socket.IO path', url: `${wsBase}/realtime-voice` },
-      ],
     },
     {
       id: 'twilio-phone',

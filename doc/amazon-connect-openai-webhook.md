@@ -1,6 +1,8 @@
 # Amazon Connect + OpenAI Realtime SIP Webhook
 
-This backend can handle **OpenAI Realtime phone calls** that arrive over **SIP**, including calls routed from **Amazon Connect**, using the same flow as in [OpenAI’s Realtime Calls / SIP integration](https://platform.openai.com/docs/guides/realtime-sip): your server receives a `realtime.call.incoming` webhook, calls **accept** on the call, then opens a **client WebSocket** to `wss://api.openai.com/v1/realtime?call_id=...` for session events and function calling.
+**Project:** [ai-phone-agent](../README.md).
+
+This server can handle **OpenAI Realtime phone calls** that arrive over **SIP**, including calls routed from **Amazon Connect**, using the same flow as in [OpenAI’s Realtime Calls / SIP integration](https://platform.openai.com/docs/guides/realtime-sip): your server receives a `realtime.call.incoming` webhook, calls **accept** on the call, then opens a **client WebSocket** to `wss://api.openai.com/v1/realtime?call_id=...` for session events and function calling.
 
 Layout aligns with `phone-sales-ai-copilot`’s `phone-sales-ai-voice-agent` service, but in this repo it lives under **`service/amazon-connect-phone/openai-sip-webhook/`** (channel) and shared pieces under **`foundation/`**.
 
@@ -19,7 +21,7 @@ Layout aligns with `phone-sales-ai-copilot`’s `phone-sales-ai-voice-agent` ser
 
 ## Enable the feature
 
-In `backend/.env`:
+In `.env`:
 
 ```env
 OPENAI_API_KEY=sk-...
@@ -27,7 +29,7 @@ OPENAI_MODEL=gpt-realtime-1.5
 AMAZON_CONNECT_PHONE_ENABLE=true
 ```
 
-`OPENAI_MODEL` matches the rest of the backend (see `backend/.env.example`); omit it to use the code fallback (`gpt-realtime-1.5`).
+`OPENAI_MODEL` matches the rest of the backend (see `.env.example`); omit it to use the code fallback (`gpt-realtime-1.5`).
 
 Optional:
 

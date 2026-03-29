@@ -1,16 +1,12 @@
 # Twilio Phone Integration Guide
 
-This document provides detailed information about the Twilio phone integration feature in the Realtime Voice AI Agent backend.
+This document describes **Twilio Media Streams** phone integration for this server.
 
-**Local testing (ngrok / tunnel, env vars):** [local-testing-twilio-and-amazon-connect-sip.md](../../doc/local-testing-twilio-and-amazon-connect-sip.md).
+**Local testing (ngrok / tunnel, env vars):** [local-testing-twilio-and-amazon-connect-sip.md](./local-testing-twilio-and-amazon-connect-sip.md).
 
 ## Overview
 
-The backend supports **dual-channel voice interactions**:
-- 🌐 **Voice from Web**: Browser-based voice interactions via Socket.IO
-- 📞 **Voice from Phone**: Phone call support via Twilio Media Streams API
-
-This is a **major feature** that enables your AI agent to handle phone calls in addition to web-based voice interactions.
+- 📞 **PSTN via Twilio**: TwiML `/incoming-call` and WebSocket `/media-stream` using `TwilioRealtimeTransportLayer` and OpenAI Realtime.
 
 ## Architecture
 
