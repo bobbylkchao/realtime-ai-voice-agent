@@ -6,7 +6,7 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "compile": "tsc",
+    "compile": "tsc && tsc-alias -p tsconfig.json",
     "start": "npm run compile && node ./dist/index.js",
     "build": "npm run compile",
     "dev": "nodemon",
@@ -19,6 +19,7 @@
   "license": "MIT",
   "description": "",
   "dependencies": {
+    "@aws-sdk/client-connect": "^3.1019.0",
     "@modelcontextprotocol/sdk": "^1.20.2",
     "@openai/agents": "^0.1.11",
     "@openai/agents-extensions": "^0.2.1",
@@ -40,6 +41,7 @@
     "globals": "^15.12.0",
     "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
+    "tsc-alias": "^1.8.16",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typescript-eslint": "^8.46.2"

@@ -1,5 +1,5 @@
 export const addTargetAttrToHyperLink = (htmlString: string) => {
-  return htmlString.replace(/<a\s+([^>]*?)>/gi, function (match, p1) {
+  return htmlString.replace(/<a\s+([^>]*?)>/gi, (match, p1) => {
     if (/href\s*=\s*['"]?tel:/i.test(p1)) {
       return match
     }

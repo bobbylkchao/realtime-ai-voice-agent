@@ -1,39 +1,36 @@
 import express from 'express'
 import { config } from 'dotenv'
 import { createServer } from 'http'
-import logger from './misc/logger'
-import { initTwilioWebSocketServer, initWebSocketServer } from './service/websocket'
-import { initMcpServers } from './service/mcp-server'
-import { initTwilioHttpRoute } from './service/twilio/http-route'
+import logger from '@/misc/logger'
+import { initMcpServers } from '@/foundation/mcp-server'
+import { initWebVoiceChannel } from '@/service/web-voice'
+import { initTwilioPhoneChannel } from '@/service/twilio-phone'
+import { initAmazonConnectPhoneChannel } from '@/service/amazon-connect-phone'
+import { registerStatusRoutes } from '@/misc/status-routes'
 
 config()
 
 const startServices = async () => {
+  logger.info('[Server] Starting server')
+
   const PORT = Number(process.env.PORT) || 4000
-  const IS_TWILIO_ENABLE = process.env.TWILIO_ENABLE === 'true'
-  const TWILIO_WEBHOOK_URL = process.env.TWILIO_WEBHOOK_URL
 
   const app = express()
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
+  registerStatusRoutes(app, PORT)
   const httpServer = createServer(app)
 
-  initTwilioHttpRoute(app)
-  initWebSocketServer(httpServer)
-  initTwilioWebSocketServer(httpServer)
+  initTwilioPhoneChannel(app, httpServer)
+  initAmazonConnectPhoneChannel(app)
+  initWebVoiceChannel(httpServer)
   initMcpServers(app, PORT)
 
   httpServer.listen(PORT, () => {
-    logger.info(`[Server] HTTP Server ready at: http://localhost:${PORT}`)
     logger.info(
-      `[Server] Websocket Server ready at: ws://localhost:${PORT}/realtime-voice`
+      `[Server] Check status page: http://localhost:${PORT}/status (urls, webhooks, MCP endpoints)`
     )
-
-    if (IS_TWILIO_ENABLE && TWILIO_WEBHOOK_URL) {
-      logger.info(
-        `[Server] Twilio Media Stream ready at: ${TWILIO_WEBHOOK_URL}`
-      )
-    }
+    logger.info('[Server] Server started successfully')
   })
 }
 

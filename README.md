@@ -23,6 +23,8 @@ This starter kit is designed to help developers quickly get started with OpenAI'
 - **Multiple Sessions**: Concurrent handling of multiple user sessions with proper isolation
 - **Voice Activity Detection**: Server-side VAD for natural conversation flow
 - **Twilio Phone Integration**: Built-in support for phone-based voice interactions via Twilio Media Streams API
+- **Amazon Connect + OpenAI SIP** (optional): Webhook for `realtime.call.incoming`, accept/hangup, and Realtime WebSocket tool handling (same layout as `phone-sales-ai-voice-agent`)
+- **Status dashboard**: After the backend starts, open **`/status`** (HTML) or **`/status.json`** to see which channels are enabled and their URLs (web, Twilio, Connect, MCP)
 
 ## 🎬 Demo Video
 
@@ -54,6 +56,7 @@ Watch the demo video to see the following features in action:
 - OpenAI Realtime API
 - Model Context Protocol (MCP)
 - Twilio Media Streams (optional)
+- Amazon Connect + OpenAI Realtime SIP webhook (optional)
 
 ## Getting Started
 
@@ -106,17 +109,21 @@ Add the following configuration to `.env`:
 ```env
 # OpenAI API Configuration
 OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_VOICE_MODEL=gpt-realtime
+OPENAI_MODEL=gpt-realtime-1.5
 
 # Server Port (optional, defaults to 4000)
 PORT=4000
 
 # Twilio Integration (optional)
-# Set TWILIO_ENABLE=true to enable Twilio phone call support
-TWILIO_ENABLE=false
+# Set TWILIO_PHONE_ENABLE=true to enable Twilio phone call support
+TWILIO_PHONE_ENABLE=false
 # Full WebSocket URL for Twilio Media Stream (must use wss:// for production)
 # Example: wss://ai-voice-agent.ilikeai.ca/media-stream
 TWILIO_WEBHOOK_URL=wss://your-domain.com/media-stream
+
+# Amazon Connect + OpenAI SIP webhook (optional)
+AMAZON_CONNECT_PHONE_ENABLE=false
+# AMAZON_CONNECT_PHONE_WEBHOOK_BASE_PATH=/amazon-connect-openai-voice-agent
 ```
 
 3. **Start Backend Application**
@@ -125,7 +132,7 @@ TWILIO_WEBHOOK_URL=wss://your-domain.com/media-stream
 npm run dev
 ```
 
-The backend will start on http://localhost:4000 (or the port specified in `PORT` environment variable).
+The backend will start on http://localhost:4000 (or the port specified in `PORT` environment variable). Open **http://localhost:4000/status** to view the live dashboard of services and endpoints (or **http://localhost:4000/status.json** for JSON).
 
 ### Running Both Services
 
@@ -169,10 +176,12 @@ The system consists of:
 3. **OpenAI Realtime API**: Handles voice-to-voice AI interactions
 4. **MCP Servers**: Provide tools and capabilities to AI agents
 5. **Twilio Integration** (optional): Phone call support via Twilio Media Streams API ⭐
+6. **Amazon Connect + OpenAI SIP** (optional): HTTP webhook + Realtime Calls accept/WS for Connect-routed calls
 
 For detailed architecture documentation, see:
-- [Backend Architecture](./doc/backend-voice-ai-agent-design.md)
+- [Backend Architecture](./doc/backend-voice-ai-agent-design.md) (includes **status dashboard** `/status`)
 - [Frontend Audio Processing](./doc/frontend-audio-process.md)
+- [Local testing: Twilio & Amazon Connect + SIP](./doc/local-testing-twilio-and-amazon-connect-sip.md)
 
 ## 📞 Twilio Phone Integration
 
@@ -208,7 +217,7 @@ The backend supports two distinct voice interaction channels:
 
    In your `backend/.env` file:
    ```env
-   TWILIO_ENABLE=true
+   TWILIO_PHONE_ENABLE=true
    TWILIO_WEBHOOK_URL=wss://your-domain.com/media-stream
    ```
 
@@ -262,21 +271,29 @@ For detailed Twilio integration documentation, see:
 - [Backend README](./backend/README.md#-twilio-phone-integration)
 - [Twilio Integration Guide](./backend/docs/twilio-integration.md)
 
+## Amazon Connect + OpenAI SIP webhook
+
+Optional third phone path: OpenAI sends **`realtime.call.incoming`** to your server; the backend **accepts** the call over REST and opens the **Realtime WebSocket** for session events and tools (pattern aligned with `phone-sales-ai-copilot`’s `phone-sales-ai-voice-agent`).
+
+1. Set `AMAZON_CONNECT_PHONE_ENABLE=true` and `OPENAI_API_KEY` in `backend/.env`.
+2. In the OpenAI dashboard, configure the SIP / phone webhook URL to  
+   `https://your-domain.com/amazon-connect-openai-voice-agent/incoming-call` (or your custom `AMAZON_CONNECT_PHONE_WEBHOOK_BASE_PATH`).
+3. Optionally set `AMAZON_CONNECT_SDK_ENABLE=true` and AWS variables so `disconnect_the_call` can update Connect contact attributes.
+
+Full reference: [Amazon Connect + OpenAI webhook](./backend/docs/amazon-connect-openai-webhook.md), [Backend architecture](./doc/backend-voice-ai-agent-design.md#amazon-connect-and-openai-sip-webhook), and [local testing (tunnel + env)](./doc/local-testing-twilio-and-amazon-connect-sip.md).
+
 ## Customization
 
 ### Adding Your Own Agents
 
-Replace or extend the demo agents in `backend/src/service/open-ai/agents/`:
+Replace or extend the demo agents in `backend/src/foundation/open-ai/agents/`:
 
-- `front-desk-agent/` - Main routing agent (example implementation)
-- `hotel-booking-agent/` - Hotel booking agent (demo)
-- `flight-booking-agent/` - Flight booking agent (demo)
-- `car-rental-booking-agent/` - Car rental agent (demo)
-- `post-booking-agent/` - Post-booking agent (demo)
+- `realtime-voice/front-desk-agent/` - Web front desk (example)
+- `general-agents/*` - Hotel, flight, car, post-booking, etc. (demos)
 
 ### Adding Your Own MCP Servers
 
-Create new MCP servers in `backend/src/service/mcp-server/` and register them in `backend/src/service/mcp-server/index.ts`. The included MCP servers are examples:
+Create new MCP servers under `backend/src/foundation/mcp-server/` and register them in `backend/src/foundation/mcp-server/index.ts`. The included MCP servers are examples:
 
 - `booking-mcp-server/` - Booking tools (demo)
 - `post-booking-mcp-server/` - Post-booking tools (demo)
@@ -292,19 +309,19 @@ Create new MCP servers in `backend/src/service/mcp-server/` and register them in
 
 ```
 realtime-voice-ai-agent/
-├── src/                          # Frontend source code
-│   └── component/               # React components
-│   └── service/                 # Frontend services (WebSocket, etc.)
-├── backend/                      # Backend source code
-│   └── src/
-│       └── service/
-│           ├── open-ai/         # OpenAI integration
-│           │   └── agents/     # AI agents (replace with your own)
-│           ├── mcp-server/     # MCP servers (replace with your own)
-│           └── websocket/      # WebSocket handlers
-├── doc/                          # Architecture documentation
-└── build/                        # Frontend build output
+├── src/                          # Frontend (React)
+├── backend/src/
+│   ├── foundation/               # Shared: open-ai, mcp-server, websocket servers, amazon-connect SDK
+│   ├── service/                  # web-voice (browser) + *-phone (PSTN)
+│   │   ├── web-voice/           # Browser / Socket.IO
+│   │   ├── twilio-phone/        # PSTN via Twilio (TwiML + Media Stream)
+│   │   └── amazon-connect-phone/ # PSTN via Connect + OpenAI SIP (openai-sip-webhook/)
+│   └── misc/                     # logger, helpers
+├── doc/                          # Architecture + local testing guides
+└── build/
 ```
+
+Imports use the `@/*` path alias (`@/foundation/...`, `@/service/...`) like `phone-sales-ai-copilot`; production build runs `tsc` + `tsc-alias`.
 
 ## License
 

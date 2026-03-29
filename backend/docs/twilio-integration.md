@@ -2,6 +2,8 @@
 
 This document provides detailed information about the Twilio phone integration feature in the Realtime Voice AI Agent backend.
 
+**Local testing (ngrok / tunnel, env vars):** [local-testing-twilio-and-amazon-connect-sip.md](../../doc/local-testing-twilio-and-amazon-connect-sip.md).
+
 ## Overview
 
 The backend supports **dual-channel voice interactions**:
@@ -55,7 +57,7 @@ Phone Call Flow:
 
 #### 1. HTTP Route Handler (`/incoming-call`)
 
-**Location**: `src/service/twilio/http-route.ts`
+**Location**: `src/service/twilio-phone/http-route.ts` (`initTwilioPhoneHttpRoute`)
 
 **Purpose**: Handles incoming call webhooks from Twilio
 
@@ -80,12 +82,12 @@ app.all('/incoming-call', (req, res) => {
 **Key Points**:
 - Handles both GET and POST requests
 - Returns TwiML XML response
-- Configurable via `TWILIO_ENABLE` and `TWILIO_WEBHOOK_URL` environment variables
+- Configurable via `TWILIO_PHONE_ENABLE` and `TWILIO_WEBHOOK_URL` environment variables
 - Logs caller ID for tracking
 
 #### 2. WebSocket Server (`/media-stream`)
 
-**Location**: `src/service/websocket/index.ts` (`initTwilioWebSocketServer`)
+**Location**: `src/foundation/websocket/endpoints/twilio-phone/` (`initTwilioPhoneMediaStreamWebSocketServer`, used by `initTwilioPhoneChannel`)
 
 **Purpose**: Handles Twilio Media Stream WebSocket connections
 
@@ -119,7 +121,7 @@ app.all('/incoming-call', (req, res) => {
 
 #### 4. Phone Session Agent
 
-**Location**: `src/service/open-ai/agents/phone-session-agent/`
+**Location**: `src/foundation/open-ai/agents/general-agents/phone-session-agent/`
 
 **Purpose**: Retrieves customer phone session data based on phone number
 
@@ -137,7 +139,7 @@ app.all('/incoming-call', (req, res) => {
 
 #### 5. Front Desk Agent for Phone
 
-**Location**: `src/service/open-ai/agents/front-desk-agent-for-phone/`
+**Location**: `src/foundation/open-ai/agents/realtime-phone/front-desk-agent/`
 
 **Purpose**: Specialized AI agent optimized for phone-based customer service
 
@@ -169,12 +171,12 @@ app.all('/incoming-call', (req, res) => {
 
 ```env
 # Required for Twilio integration
-TWILIO_ENABLE=true
+TWILIO_PHONE_ENABLE=true
 TWILIO_WEBHOOK_URL=wss://your-domain.com/media-stream
 
 # Required for OpenAI
 OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_MODEL=gpt-realtime
+OPENAI_MODEL=gpt-realtime-1.5
 
 # Optional
 PORT=4000
@@ -204,7 +206,7 @@ PORT=4000
 
 2. **Update `.env`**:
    ```env
-   TWILIO_ENABLE=true
+   TWILIO_PHONE_ENABLE=true
    TWILIO_WEBHOOK_URL=wss://abc123.ngrok.io/media-stream
    ```
 
@@ -238,7 +240,7 @@ PORT=4000
 
 2. **Set Environment Variables**:
    ```env
-   TWILIO_ENABLE=true
+   TWILIO_PHONE_ENABLE=true
    TWILIO_WEBHOOK_URL=wss://your-production-domain.com/media-stream
    ```
 
