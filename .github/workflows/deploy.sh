@@ -35,36 +35,36 @@ npm run build
 
 echo "🔄 Managing service via pm2..."
 
-if pm2 list 2>/dev/null | grep -q "realtime-agent-backend"; then
+if pm2 list 2>/dev/null | grep -q "ai-phone-agent-service"; then
     echo "✅ Service exists, restarting..."
-    pm2 restart realtime-agent-backend || {
+    pm2 restart ai-phone-agent-service || {
         echo "⚠️  Warning: Failed to restart, trying delete and start fresh..."
-        pm2 delete realtime-agent-backend 2>/dev/null || true
-        pm2 start dist/index.js --name realtime-agent-backend || {
+        pm2 delete ai-phone-agent-service 2>/dev/null || true
+        pm2 start dist/index.js --name ai-phone-agent-service || {
           echo "⚠️  Warning: Failed to start with dist/index.js, trying npm start..."
-          pm2 start npm --name realtime-agent-backend -- start
+          pm2 start npm --name ai-phone-agent-service -- start
         }
     }
 else
     echo "🚀 Service not found, starting..."
-    pm2 start dist/index.js --name realtime-agent-backend || {
+    pm2 start dist/index.js --name ai-phone-agent-service || {
       echo "⚠️  Warning: Failed to start with dist/index.js, trying npm start..."
-      pm2 start npm --name realtime-agent-backend -- start
+      pm2 start npm --name ai-phone-agent-service -- start
     }
 fi
 
 echo "📊 Verifying pm2 status..."
-SERVICE_STATUS=$(pm2 list 2>/dev/null | grep "realtime-agent-backend" || echo "")
+SERVICE_STATUS=$(pm2 list 2>/dev/null | grep "ai-phone-agent-service" || echo "")
 
 if [ -z "$SERVICE_STATUS" ]; then
-    echo "❌ Error: 'realtime-agent-backend' not found in pm2"
+    echo "❌ Error: 'ai-phone-agent-service' not found in pm2"
     exit 1
 fi
 
 pm2 save
 
 echo "📋 Service status:"
-pm2 list 2>/dev/null | grep "realtime-agent-backend"
+pm2 list 2>/dev/null | grep "ai-phone-agent-service"
 
 if echo "$SERVICE_STATUS" | grep -q "online"; then
     echo "✅ Service is running"
