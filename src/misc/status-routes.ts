@@ -144,7 +144,7 @@ const renderStatusHtml = (
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Voice agent — status</title>
+  <title>AI Phone Agent — Status</title>
   <style>
     :root { --bg: #0f1419; --card: #1a2332; --text: #e7e9ea; --muted: #8b98a5; --ok: #00ba7c; --off: #71767b; }
     * { box-sizing: border-box; }
