@@ -28,8 +28,8 @@ This starter kit exists to help you **go from zero to a working AI phone agent**
 ## Key features
 
 - **Realtime phone conversations** — AI answers, interrupts naturally, and responds with low-latency speech via OpenAI Realtime.
-- **Twilio integration** — TwiML entry + **Media Streams** WebSocket (`/incoming-call`, `/media-stream`) for classic programmable voice setups.
-- **Amazon Connect integration** — OpenAI **incoming-call** webhook + **accept** flow and streaming session under `openai-sip-webhook/` (see docs).
+- **Twilio integration** — TwiML entry + **Media Streams** WebSocket (`/twilio-phone/incoming-call`, `/twilio-phone/media-stream`) for classic programmable voice setups.
+- **Amazon Connect integration** — OpenAI **incoming-call** webhook at **`/amazon-connect-phone/incoming-call`** (default; override with `AMAZON_CONNECT_PHONE_WEBHOOK_BASE_PATH`) + **accept** flow and streaming session in `openai-sip-webhook/` (see docs).
 - **Call tools that matter on the phone** — example tools include structured **trip / intake** updates, **transfer to human**, and **hang up**, with scheduling so transfers don’t cut off the assistant mid-sentence.
 - **Optional MCP servers** — plug in Model Context Protocol HTTP servers for discoverable tools; sample MCP implementations are starting points for your own backends.
 - **TypeScript throughout** — `@/*` path aliases, compiled to `dist/` with **`tsc-alias`** for clean imports.
@@ -40,7 +40,7 @@ The **booking MCP**, **post-booking MCP**, and **trip-intake-style** tools in th
 
 ## Layout
 
-- **`src/foundation/`** — OpenAI agents & helpers, MCP servers, Twilio WebSocket (`/media-stream`), Amazon Connect SDK.
+- **`src/foundation/`** — OpenAI agents & helpers, MCP servers, Twilio WebSocket (`/twilio-phone/media-stream`), Amazon Connect SDK.
 - **`src/service/`** — `twilio-phone`, `amazon-connect-phone` (OpenAI SIP webhook under `openai-sip-webhook/`).
 
 TypeScript **`@/*` → `src/*`**; **`tsc-alias`** rewrites imports in `dist/`.

@@ -1,5 +1,6 @@
 import type { Express } from 'express'
 import logger from '@/misc/logger'
+import { AMAZON_CONNECT_PHONE_WEBHOOK_BASE_PATH_DEFAULT } from '../constants'
 import { handleOpenAiSipIncomingCallWebhook } from './webhook/incoming-call'
 
 /**
@@ -8,7 +9,7 @@ import { handleOpenAiSipIncomingCallWebhook } from './webhook/incoming-call'
  */
 export const getOpenAiSipWebhookBasePath = (): string =>
   process.env.AMAZON_CONNECT_PHONE_WEBHOOK_BASE_PATH ||
-  '/amazon-connect-openai-voice-agent'
+  AMAZON_CONNECT_PHONE_WEBHOOK_BASE_PATH_DEFAULT
 
 /**
  * Registers POST .../incoming-call for OpenAI `realtime.call.incoming`.

@@ -1,7 +1,8 @@
 import type { Express } from 'express'
 import logger from '@/misc/logger'
+import { TWILIO_PHONE_INCOMING_CALL_PATH } from './constants'
 
-/** Twilio phone webhook: returns TwiML that starts Media Streams to `/media-stream`. */
+/** Twilio phone webhook: returns TwiML that starts Media Streams to `TWILIO_WEBHOOK_URL` (`/twilio-phone/media-stream`). */
 export const initTwilioPhoneHttpRoute = (app: Express) => {
   if (
     process.env.TWILIO_PHONE_ENABLE !== 'true' ||
@@ -13,7 +14,7 @@ export const initTwilioPhoneHttpRoute = (app: Express) => {
     return
   }
 
-  app.all('/incoming-call', (req, res) => {
+  app.all(TWILIO_PHONE_INCOMING_CALL_PATH, (req, res) => {
     const mediaStreamUrl = process.env.TWILIO_WEBHOOK_URL
 
     const twimlResponse = `

@@ -1,5 +1,7 @@
 import type { Express, Request, Response } from 'express'
 import { mcpServerList } from '@/foundation/mcp-server'
+import { AMAZON_CONNECT_PHONE_WEBHOOK_BASE_PATH_DEFAULT } from '@/service/amazon-connect-phone/constants'
+import { TWILIO_PHONE_INCOMING_CALL_PATH } from '@/service/twilio-phone/constants'
 
 export interface StatusServiceRow {
   id: string
@@ -33,7 +35,7 @@ export const buildStatusPayload = (req: Request, port: number) => {
   const connectPhoneEnabled = process.env.AMAZON_CONNECT_PHONE_ENABLE === 'true'
   const connectWebhookBase =
     process.env.AMAZON_CONNECT_PHONE_WEBHOOK_BASE_PATH ||
-    '/amazon-connect-openai-voice-agent'
+    AMAZON_CONNECT_PHONE_WEBHOOK_BASE_PATH_DEFAULT
   const connectIncomingUrl = `${base}${connectWebhookBase}/incoming-call`
 
   const connectSdkEnabled = process.env.AMAZON_CONNECT_SDK_ENABLE === 'true'
@@ -53,7 +55,7 @@ export const buildStatusPayload = (req: Request, port: number) => {
         ? 'TwiML + Media Stream'
         : 'Set TWILIO_PHONE_ENABLE=true and TWILIO_WEBHOOK_URL',
       endpoints: [
-        { label: 'TwiML webhook (voice)', url: `${base}/incoming-call` },
+        { label: 'TwiML webhook (voice)', url: `${base}${TWILIO_PHONE_INCOMING_CALL_PATH}` },
         ...(twilioWebhookUrl
           ? [{ label: 'Media Stream (WebSocket)', url: twilioWebhookUrl }]
           : []),

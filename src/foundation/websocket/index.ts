@@ -3,7 +3,7 @@ import logger from '@/misc/logger'
 import { initTwilioPhoneMediaStreamWebSocketServer } from './endpoints/twilio-phone/media-stream'
 
 /**
- * Native WebSocket server for Twilio Media Streams (`/media-stream`).
+ * Native WebSocket server for Twilio Media Streams (`/twilio-phone/media-stream`).
  * No-op when TWILIO_PHONE_ENABLE is not `true`.
  */
 export const initTwilioPhoneMediaStreamWebSocket = (

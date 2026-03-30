@@ -34,7 +34,7 @@ AMAZON_CONNECT_PHONE_ENABLE=true
 Optional:
 
 ```env
-AMAZON_CONNECT_PHONE_WEBHOOK_BASE_PATH=/amazon-connect-openai-voice-agent
+AMAZON_CONNECT_PHONE_WEBHOOK_BASE_PATH=/amazon-connect-phone
 AMAZON_CONNECT_VOICE_AGENT_DEFAULT_PHONE=+15551234567
 ```
 
@@ -42,12 +42,12 @@ Restart the server. The webhook URL is:
 
 `https://<your-host><BASE_PATH>/incoming-call`
 
-Default `BASE_PATH` is `/amazon-connect-openai-voice-agent`.
+Default `BASE_PATH` is `/amazon-connect-phone`.
 
 ## OpenAI dashboard
 
 1. Configure your **Realtime SIP / phone** integration so OpenAI sends `realtime.call.incoming` to your public URL (HTTPS).
-2. Point the webhook to: `https://<your-domain>/amazon-connect-openai-voice-agent/incoming-call` (or your custom base path).
+2. Point the webhook to: `https://<your-domain>/amazon-connect-phone/incoming-call` (or your custom base path).
 
 For local development, see [Local testing: Twilio and Amazon Connect + SIP](../../doc/local-testing-twilio-and-amazon-connect-sip.md).
 
@@ -90,7 +90,7 @@ Nothing in this template’s `accept` body injects hotel names or check-in/out d
 
 | Channel | Entry | Transport to OpenAI |
 |--------|--------|---------------------|
-| Twilio | `service/twilio-phone` → `/incoming-call` + `/media-stream` | `@openai/agents-extensions` Twilio transport |
+| Twilio | `service/twilio-phone` → `/twilio-phone/incoming-call` + `/twilio-phone/media-stream` | `@openai/agents-extensions` Twilio transport |
 | Connect + OpenAI SIP | `service/amazon-connect-phone` → OpenAI webhook | REST `accept` + native Realtime WS |
 
 You can run **both** on the same server if you enable Twilio and set `AMAZON_CONNECT_PHONE_ENABLE=true`.

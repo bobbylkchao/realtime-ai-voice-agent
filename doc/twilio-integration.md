@@ -6,7 +6,7 @@ This document describes **Twilio Media Streams** phone integration for this serv
 
 ## Overview
 
-- 📞 **PSTN via Twilio**: TwiML `/incoming-call` and WebSocket `/media-stream` using `TwilioRealtimeTransportLayer` and OpenAI Realtime.
+- 📞 **PSTN via Twilio**: TwiML `/twilio-phone/incoming-call` and WebSocket `/twilio-phone/media-stream` using `TwilioRealtimeTransportLayer` and OpenAI Realtime.
 
 ## Architecture
 
@@ -23,18 +23,18 @@ Phone Call Flow:
 ┌─────────┐
 │ Twilio  │
 └────┬────┘
-     │ POST /incoming-call
+     │ POST /twilio-phone/incoming-call
      ▼
 ┌─────────┐
 │ Backend │ ──→ Returns TwiML with <Stream> directive
 │ Server  │
 └────┬────┘
      │
-     │ Twilio connects to wss://.../media-stream
+     │ Twilio connects to wss://.../twilio-phone/media-stream
      ▼
 ┌─────────┐
 │ WebSocket│
-│ /media-stream │
+│ /twilio-phone/media-stream │
 └────┬────┘
      │
      ▼
@@ -51,15 +51,15 @@ Phone Call Flow:
 
 ### Components
 
-#### 1. HTTP Route Handler (`/incoming-call`)
+#### 1. HTTP Route Handler (`/twilio-phone/incoming-call`)
 
 **Location**: `src/service/twilio-phone/http-route.ts` (`initTwilioPhoneHttpRoute`)
 
 **Purpose**: Handles incoming call webhooks from Twilio
 
-**Implementation**:
+**Implementation** (path is `TWILIO_PHONE_INCOMING_CALL_PATH` in `src/service/twilio-phone/constants.ts`):
 ```typescript
-app.all('/incoming-call', (req, res) => {
+app.all('/twilio-phone/incoming-call', (req, res) => {
   const mediaStreamUrl = process.env.TWILIO_WEBHOOK_URL
   
   const twimlResponse = `
@@ -81,7 +81,7 @@ app.all('/incoming-call', (req, res) => {
 - Configurable via `TWILIO_PHONE_ENABLE` and `TWILIO_WEBHOOK_URL` environment variables
 - Logs caller ID for tracking
 
-#### 2. WebSocket Server (`/media-stream`)
+#### 2. WebSocket Server (`/twilio-phone/media-stream`)
 
 **Location**: `src/foundation/websocket/endpoints/twilio-phone/` (`initTwilioPhoneMediaStreamWebSocketServer`, used by `initTwilioPhoneChannel`)
 
@@ -89,7 +89,7 @@ app.all('/incoming-call', (req, res) => {
 
 **Key Features**:
 - Uses native WebSocket (not Socket.IO) to avoid conflicts
-- Manual upgrade handling for `/media-stream` path only
+- Manual upgrade handling for `/twilio-phone/media-stream` path only
 - Creates isolated session per phone call
 - Uses `TwilioRealtimeTransportLayer` from `@openai/agents-extensions`
 
@@ -168,7 +168,7 @@ app.all('/incoming-call', (req, res) => {
 ```env
 # Required for Twilio integration
 TWILIO_PHONE_ENABLE=true
-TWILIO_WEBHOOK_URL=wss://your-domain.com/media-stream
+TWILIO_WEBHOOK_URL=wss://your-domain.com/twilio-phone/media-stream
 
 # Required for OpenAI
 OPENAI_API_KEY=your_openai_api_key_here
@@ -184,7 +184,7 @@ PORT=4000
    - Go to Twilio Console → Phone Numbers → Manage → Active numbers
    - Select your phone number
    - In "Voice & Fax" section:
-     - **Webhook URL**: `https://your-domain.com/incoming-call`
+     - **Webhook URL**: `https://your-domain.com/twilio-phone/incoming-call`
      - **HTTP Method**: `POST`
 
 2. **Media Streams**:
@@ -203,19 +203,19 @@ PORT=4000
 2. **Update `.env`**:
    ```env
    TWILIO_PHONE_ENABLE=true
-   TWILIO_WEBHOOK_URL=wss://abc123.ngrok.io/media-stream
+   TWILIO_WEBHOOK_URL=wss://abc123.ngrok.io/twilio-phone/media-stream
    ```
 
 3. **Configure Twilio Webhook**:
-   - URL: `https://abc123.ngrok.io/incoming-call`
+   - URL: `https://abc123.ngrok.io/twilio-phone/incoming-call`
    - Method: `POST`
 
 ### Testing Phone Calls
 
 1. Call your Twilio phone number
-2. Backend receives POST to `/incoming-call`
+2. Backend receives POST to `/twilio-phone/incoming-call`
 3. Returns TwiML with Stream directive
-4. Twilio connects to `/media-stream` WebSocket
+4. Twilio connects to `/twilio-phone/media-stream` WebSocket
 5. AI agent greets and handles conversation
 
 ## Production Deployment
@@ -224,7 +224,7 @@ PORT=4000
 
 1. **HTTPS/WSS Support**: Server must support secure WebSocket connections
 2. **Public Domain**: Server must be accessible from internet
-3. **WebSocket Upgrade**: Server must handle WebSocket upgrades on `/media-stream` path
+3. **WebSocket Upgrade**: Server must handle WebSocket upgrades on `/twilio-phone/media-stream` path
 
 ### Deployment Steps
 
@@ -237,7 +237,7 @@ PORT=4000
 2. **Set Environment Variables**:
    ```env
    TWILIO_PHONE_ENABLE=true
-   TWILIO_WEBHOOK_URL=wss://your-production-domain.com/media-stream
+   TWILIO_WEBHOOK_URL=wss://your-production-domain.com/twilio-phone/media-stream
    ```
 
 3. **Configure Twilio**:
@@ -250,7 +250,7 @@ Ensure your server/proxy (nginx, etc.) allows WebSocket upgrades:
 
 **nginx example**:
 ```nginx
-location /media-stream {
+location /twilio-phone/media-stream {
     proxy_pass http://localhost:4000;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
@@ -272,9 +272,9 @@ Each phone call gets:
 
 ### Session Lifecycle
 
-1. **Call Initiated**: Twilio sends POST to `/incoming-call`
+1. **Call Initiated**: Twilio sends POST to `/twilio-phone/incoming-call`
 2. **TwiML Response**: Server returns Stream directive
-3. **WebSocket Connection**: Twilio connects to `/media-stream`
+3. **WebSocket Connection**: Twilio connects to `/twilio-phone/media-stream`
 4. **Session Creation**: Backend creates RealtimeSession immediately
 5. **MCP Connection**: MCP servers connect in background
 6. **Agent Update**: Agent updated with MCP servers after connection

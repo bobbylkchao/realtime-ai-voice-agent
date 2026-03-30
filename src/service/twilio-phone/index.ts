@@ -4,7 +4,7 @@ import { initTwilioPhoneHttpRoute } from './http-route'
 import { initTwilioPhoneMediaStreamWebSocket } from '@/foundation/websocket'
 
 /**
- * Twilio **phone** channel: HTTP `/incoming-call` (TwiML) + native WebSocket `/media-stream`.
+ * Twilio **phone** channel: HTTP `/twilio-phone/incoming-call` (TwiML) + native WebSocket `/twilio-phone/media-stream`.
  */
 export const initTwilioPhoneChannel = (
   app: Express,

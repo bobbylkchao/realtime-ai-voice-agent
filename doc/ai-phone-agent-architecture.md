@@ -43,10 +43,10 @@ This system implements a realtime voice AI agent platform using OpenAI's Realtim
 
 ## System Architecture
 
-Phone-first layout: **Twilio** (`/incoming-call` + `/media-stream`) and/or **Amazon Connect + OpenAI SIP** (HTTPS webhook + OpenAI Realtime WebSocket). Shared **OpenAI agents**, **MCP** HTTP tool servers, optional **Amazon Connect SDK** for contact attributes.
+Phone-first layout: **Twilio** (`/twilio-phone/incoming-call` + `/twilio-phone/media-stream`) and/or **Amazon Connect + OpenAI SIP** (HTTPS webhook + OpenAI Realtime WebSocket). Shared **OpenAI agents**, **MCP** HTTP tool servers, optional **Amazon Connect SDK** for contact attributes.
 
 ```
-Twilio PSTN ──► /incoming-call (TwiML) ──► /media-stream (WS) ──► TwilioRealtimeTransportLayer ──► RealtimeSession + agents + MCP
+Twilio PSTN ──► /twilio-phone/incoming-call (TwiML) ──► /twilio-phone/media-stream (WS) ──► TwilioRealtimeTransportLayer ──► RealtimeSession + agents + MCP
 
 Amazon Connect ──► OpenAI SIP ──► your POST .../incoming-call ──► accept + WSS to OpenAI ──► tools (e.g. handoff)
 ```
@@ -58,7 +58,7 @@ When **Amazon Connect** (or another SIP provider) routes calls into **OpenAI Rea
 ### Request flow
 
 ```
-Amazon Connect → OpenAI SIP → POST /amazon-connect-openai-voice-agent/incoming-call
+Amazon Connect → OpenAI SIP → POST /amazon-connect-phone/incoming-call
                                       │
                                       ├─► POST /v1/realtime/calls/{call_id}/accept
                                       │
@@ -75,8 +75,8 @@ Amazon Connect → OpenAI SIP → POST /amazon-connect-openai-voice-agent/incomi
 
 | Path | Use case |
 |------|-----------|
-| Native WS `/media-stream` | Twilio Media Streams |
-| HTTP `.../incoming-call` | Twilio TwiML **or** OpenAI SIP / Connect webhook (different deployments) |
+| Native WS `/twilio-phone/media-stream` | Twilio Media Streams |
+| HTTP Twilio `.../twilio-phone/incoming-call` **or** Connect `...{BASE}/incoming-call` | Twilio TwiML **or** OpenAI SIP / Connect webhook (different deployments) |
 
 Detailed setup and customization notes: [amazon-connect-openai-webhook.md](./amazon-connect-openai-webhook.md).  
 Local tunnel testing: [local-testing-twilio-and-amazon-connect-sip.md](./local-testing-twilio-and-amazon-connect-sip.md).
@@ -409,19 +409,19 @@ The system supports integration with Twilio for phone-based voice interactions:
 
 **Configuration**:
 - Transport: Native WebSocket (using `ws` library)
-- Path: `/media-stream`
+- Path: `/twilio-phone/media-stream`
 - Protocol: Twilio Media Streams API
 - Transport Layer: `TwilioRealtimeTransportLayer` from `@openai/agents-extensions`
 
 **Twilio Integration Architecture**:
 
 ```
-Phone Call → Twilio → /incoming-call (HTTP POST)
+Phone Call → Twilio → /twilio-phone/incoming-call (HTTP POST)
                       ↓
                   TwiML Response
-                  <Stream url="wss://.../media-stream" />
+                  <Stream url="wss://.../twilio-phone/media-stream" />
                       ↓
-                  Twilio connects to /media-stream (WebSocket)
+                  Twilio connects to /twilio-phone/media-stream (WebSocket)
                       ↓
             TwilioRealtimeTransportLayer
                       ↓
@@ -431,7 +431,7 @@ Phone Call → Twilio → /incoming-call (HTTP POST)
 **Components**:
 
 1. **HTTP Route Handler** (`src/service/twilio-phone/http-route.ts` — `initTwilioPhoneHttpRoute`):
-   - Endpoint: `/incoming-call`
+   - Endpoint: `/twilio-phone/incoming-call`
    - Method: `ALL` (handles GET/POST)
    - Returns: TwiML XML response
    - Configurable via `TWILIO_PHONE_ENABLE` and `TWILIO_WEBHOOK_URL` environment variables
@@ -455,10 +455,10 @@ Phone Call → Twilio → /incoming-call (HTTP POST)
 
 **Environment Variables**:
 - `TWILIO_PHONE_ENABLE`: Set to `'true'` to enable the Twilio phone channel (TwiML + Media Stream)
-- `TWILIO_WEBHOOK_URL`: Full WebSocket URL for Media Stream (e.g., `wss://ai-voice-agent.ilikeai.ca/media-stream`)
+- `TWILIO_WEBHOOK_URL`: Full WebSocket URL for Media Stream (e.g., `wss://ai-voice-agent.ilikeai.ca/twilio-phone/media-stream`)
 
 **Twilio Setup**:
-1. Configure Twilio phone number webhook to point to `https://your-domain.com/incoming-call`
+1. Configure Twilio phone number webhook to point to `https://your-domain.com/twilio-phone/incoming-call`
 2. Set `TWILIO_PHONE_ENABLE=true` in environment variables
 3. Set `TWILIO_WEBHOOK_URL` to your public WebSocket URL (must be `wss://` for production)
 4. Ensure server is accessible via HTTPS/WSS for production use
@@ -492,7 +492,7 @@ Media streams flow through **Twilio** ↔ **`TwilioRealtimeTransportLayer`** ↔
 
 ## Session lifecycle (summary)
 
-- **Twilio**: Per-call `RealtimeSession` lives for the lifetime of the `/media-stream` WebSocket; MCP connects in the background per the Twilio handler.
+- **Twilio**: Per-call `RealtimeSession` lives for the lifetime of the `/twilio-phone/media-stream` WebSocket; MCP connects in the background per the Twilio handler.
 - **Connect SIP**: Per-call state in `openai-sip-webhook` (accept → client WS → tools); hangup ends the OpenAI call leg.
 
 ## Error Handling
@@ -598,7 +598,7 @@ try {
 
 | Layer | Path | Role |
 |--------|------|------|
-| **Twilio phone** | `src/service/twilio-phone/` | PSTN via Twilio; TwiML `/incoming-call` + WS `/media-stream` |
+| **Twilio phone** | `src/service/twilio-phone/` | PSTN via Twilio; TwiML `/twilio-phone/incoming-call` + WS `/twilio-phone/media-stream` |
 | **Amazon Connect phone** | `src/service/amazon-connect-phone/` | PSTN via Connect + OpenAI SIP; webhook + Realtime WS (`openai-sip-webhook/`) |
 | **Foundation** | `src/foundation/` | Shared **open-ai** agents & helpers, **mcp-server**, **websocket** (Twilio), **amazon-connect** SDK |
 

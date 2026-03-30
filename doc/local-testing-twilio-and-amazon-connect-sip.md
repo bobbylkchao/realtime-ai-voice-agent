@@ -15,14 +15,14 @@ This guide explains how to exercise the **two phone-related channels** of this r
 
 ### What gets hit
 
-1. Twilio requests **TwiML** from your server: `POST/GET https://<host>/incoming-call`
-2. Twilio opens a **WebSocket** to `TWILIO_WEBHOOK_URL` (must be `wss://...` in production; for local tunnels, `wss://<same-ngrok-host>/media-stream`)
+1. Twilio requests **TwiML** from your server: `POST/GET https://<host>/twilio-phone/incoming-call`
+2. Twilio opens a **WebSocket** to `TWILIO_WEBHOOK_URL` (must be `wss://...` in production; for local tunnels, `wss://<same-ngrok-host>/twilio-phone/media-stream`)
 
 ### Environment (`.env`)
 
 ```env
 TWILIO_PHONE_ENABLE=true
-TWILIO_WEBHOOK_URL=wss://YOUR_TUNNEL_HOST/media-stream
+TWILIO_WEBHOOK_URL=wss://YOUR_TUNNEL_HOST/twilio-phone/media-stream
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-realtime-1.5
 ```
@@ -37,14 +37,14 @@ ngrok http 4000
 
 Copy the **HTTPS** URL (e.g. `https://abc123.ngrok-free.app`). Your WebSocket URL is the same host with `wss://`:
 
-`wss://abc123.ngrok-free.app/media-stream`
+`wss://abc123.ngrok-free.app/twilio-phone/media-stream`
 
-Set `TWILIO_WEBHOOK_URL` to that `wss://.../media-stream` value.
+Set `TWILIO_WEBHOOK_URL` to that `wss://.../twilio-phone/media-stream` value.
 
 ### Twilio Console
 
 - **Phone number → Voice configuration**
-- **A call comes in**: Webhook URL `https://abc123.ngrok-free.app/incoming-call`, HTTP POST (GET also works with this app)
+- **A call comes in**: Webhook URL `https://abc123.ngrok-free.app/twilio-phone/incoming-call`, HTTP POST (GET also works with this app)
 
 ### Verify
 
@@ -62,7 +62,7 @@ This path is **different from Twilio**: audio goes **Connect → OpenAI over SIP
 
 ### What gets hit
 
-- **OpenAI** sends `POST https://<your-backend>/amazon-connect-openai-voice-agent/incoming-call` (unless you change `AMAZON_CONNECT_PHONE_WEBHOOK_BASE_PATH`)
+- **OpenAI** sends `POST https://<your-backend>/amazon-connect-phone/incoming-call` (unless you change `AMAZON_CONNECT_PHONE_WEBHOOK_BASE_PATH`)
 - Your app responds and drives the call via the Realtime Calls API (see `src/service/amazon-connect-phone/openai-sip-webhook/`)
 
 ### Environment (`.env`)
@@ -72,7 +72,7 @@ AMAZON_CONNECT_PHONE_ENABLE=true
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-realtime-1.5
 # Optional: custom path
-# AMAZON_CONNECT_PHONE_WEBHOOK_BASE_PATH=/amazon-connect-openai-voice-agent
+# AMAZON_CONNECT_PHONE_WEBHOOK_BASE_PATH=/amazon-connect-phone
 ```
 
 Optional **Amazon Connect contact attributes** when the model hangs up (SDK):
@@ -91,7 +91,7 @@ Same idea as Twilio: expose port `4000` and use the **HTTPS** URL as the base fo
 
 Example webhook URL you register in the **OpenAI** dashboard (Realtime / SIP / phone integration):
 
-`https://abc123.ngrok-free.app/amazon-connect-openai-voice-agent/incoming-call`
+`https://abc123.ngrok-free.app/amazon-connect-phone/incoming-call`
 
 ### AWS side (high level)
 
@@ -106,7 +106,7 @@ Use AWS and OpenAI documentation as the source of truth for trunk FQDN, authenti
 ### Verify
 
 - Trigger a test call through Connect into OpenAI SIP.
-- Your tunnel should show a **POST** to `.../incoming-call`.
+- Your tunnel should show a **POST** to `.../twilio-phone/incoming-call` (Twilio) or `.../amazon-connect-phone/incoming-call` (Connect + OpenAI).
 - Backend logs should include `[AmazonConnectPhone] realtime.call.incoming received` and accept/WS logs.
 
 ### Code map
@@ -121,7 +121,7 @@ Use AWS and OpenAI documentation as the source of truth for trunk FQDN, authenti
 
 | Item | Twilio channel | Amazon Connect + OpenAI SIP channel |
 |------|----------------|-------------------------------------|
-| This repo serves | TwiML + `/media-stream` WS | **Only** OpenAI webhook + OpenAI Realtime WS to OpenAI |
+| This repo serves | TwiML + `/twilio-phone/media-stream` WS | **Only** OpenAI webhook + OpenAI Realtime WS to OpenAI |
 | Audio path | Twilio ↔ your server ↔ OpenAI | Connect ↔ OpenAI SIP ↔ OpenAI (your server is control-plane) |
 | Env flags | `TWILIO_PHONE_ENABLE`, `TWILIO_WEBHOOK_URL` | `AMAZON_CONNECT_PHONE_ENABLE` |
 | Tunnel needs | `https` + `wss` to same host | `https` for webhook |
