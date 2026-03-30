@@ -68,7 +68,10 @@ export const runTransferToHumanAgentHangup = async (
   deleteCall(callId)
   await hangUpOpenAiSipCall(callId, contactId ?? '')
 
-  logger.info({ callId, contactId }, '[AmazonConnectPhone] transfer_to_human_agent completed')
+  logger.info(
+    { callId, contactId },
+    '[AmazonConnectPhone] transfer_to_human_agent completed'
+  )
 }
 
 export const transferToHumanAgentTool = {

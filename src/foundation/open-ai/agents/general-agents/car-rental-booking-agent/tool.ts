@@ -3,7 +3,7 @@ import { tool } from '@openai/agents-realtime'
 
 /**
  * Car Rental Booking Tool
- * 
+ *
  * This tool handles car rental booking requests.
  * It replaces the carRentalBookingAgent functionality.
  */
@@ -27,4 +27,3 @@ export const carRentalBookingTool = tool({
     })
   },
 })
-

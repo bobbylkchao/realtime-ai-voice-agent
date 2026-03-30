@@ -1,8 +1,16 @@
 # ai-phone-agent
 
-Production-ready **Node.js** server for **phone** voice agents using OpenAI Realtime: **Twilio Media Streams** (PSTN) and **Amazon Connect + OpenAI SIP** (webhook + Calls API). Optional **MCP** tool HTTP servers.
+<p align="center">
+  <img src="./doc/assets/ai-phone-agent.png" alt="AI Phone Agent: caller connects via Twilio or Amazon Connect; the backend lets an AI answer and talk on the call." width="720" />
+</p>
 
-**Requires Node ≥ 16.**
+An **AI Phone Agent** backend: a **Node.js** server you plug into **Twilio** or **Amazon Connect** so callers reach an AI that **answers the phone** and **talks to customers** in real time, powered by **[OpenAI Realtime](https://platform.openai.com/docs/guides/realtime)**. Optional tools (hang up, transfer to a person, collect info, etc.), optional **[MCP](https://modelcontextprotocol.io/)** servers, and **`/status`** help you wire it up and test locally (e.g. with ngrok).
+
+**Requires Node.js ≥ 16.**
+
+## Try it
+
+**Try it by calling [+1 (855) 522-2348](tel:+18555222348)** — a sample **AI Phone Agent** built on this starter kit using **Amazon Connect** and **OpenAI SIP**. The AI acts as a human agent, holding a near-real-time conversation with callers to capture trip intent and answer trip-related questions.
 
 ## Layout
 

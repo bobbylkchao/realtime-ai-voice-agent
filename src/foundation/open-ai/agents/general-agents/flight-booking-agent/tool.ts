@@ -3,7 +3,7 @@ import { tool } from '@openai/agents-realtime'
 
 /**
  * Flight Booking Tool
- * 
+ *
  * This tool handles flight booking requests.
  * It replaces the flightBookingAgent functionality.
  */
@@ -27,4 +27,3 @@ export const flightBookingTool = tool({
     })
   },
 })
-

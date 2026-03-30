@@ -5,7 +5,7 @@ const updateTripIntakeSchema = z.object({
   customerName: z
     .string()
     .optional()
-    .describe('Customer\'s preferred name once they give it.'),
+    .describe("Customer's preferred name once they give it."),
   tripRequirementsNotes: z
     .string()
     .optional()
@@ -20,7 +20,7 @@ export const updateTripIntakeParametersJsonSchema = {
   properties: {
     customerName: {
       type: 'string',
-      description: 'Customer\'s preferred name once they give it.',
+      description: "Customer's preferred name once they give it.",
     },
     tripRequirementsNotes: {
       type: 'string',

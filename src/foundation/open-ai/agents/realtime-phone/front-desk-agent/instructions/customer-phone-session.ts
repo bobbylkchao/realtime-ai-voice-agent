@@ -4,7 +4,7 @@
  */
 
 export const getCustomerPhoneSessionInstructions = (
-  phoneNumber: string,
+  phoneNumber: string
 ): string => {
   return `
 ## Instructions: Customer's Phone Session ##
@@ -15,4 +15,3 @@ export const getCustomerPhoneSessionInstructions = (
 5. The term 'phone session' is a technical matter, customer does not know what it is, so you could say: "The trip you're looking at" or "The trip you're looking for" instead of 'phone session'.
 `.trim()
 }
-

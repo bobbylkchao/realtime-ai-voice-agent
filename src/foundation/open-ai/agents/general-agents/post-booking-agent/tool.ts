@@ -3,7 +3,7 @@ import { tool } from '@openai/agents-realtime'
 
 /**
  * Post Booking Tool
- * 
+ *
  * This tool helps customers with their existing bookings.
  * It replaces the postBookingAgent functionality.
  */
@@ -28,4 +28,3 @@ export const postBookingTool = tool({
     })
   },
 })
-

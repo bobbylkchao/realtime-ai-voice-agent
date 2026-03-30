@@ -97,7 +97,10 @@ export const handleOpenAiSipIncomingCallWebhook = async (
       })
     }
   } catch (error) {
-    const errorDetails = getErrorMessage('handleOpenAiSipIncomingCallWebhook', error)
+    const errorDetails = getErrorMessage(
+      'handleOpenAiSipIncomingCallWebhook',
+      error
+    )
     logger.error(
       errorDetails,
       '[AmazonConnectPhone] Error handling OpenAI SIP incoming webhook'

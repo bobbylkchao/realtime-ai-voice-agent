@@ -27,7 +27,9 @@ export const mergeTripIntake = (
   intakeByCallId.set(callId, { ...existing, ...data })
 }
 
-export const getTripIntake = (callId: string): SipTripIntakeData | undefined => {
+export const getTripIntake = (
+  callId: string
+): SipTripIntakeData | undefined => {
   return intakeByCallId.get(callId)
 }
 

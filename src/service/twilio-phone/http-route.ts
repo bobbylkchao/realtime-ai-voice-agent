@@ -3,8 +3,13 @@ import logger from '@/misc/logger'
 
 /** Twilio phone webhook: returns TwiML that starts Media Streams to `/media-stream`. */
 export const initTwilioPhoneHttpRoute = (app: Express) => {
-  if (process.env.TWILIO_PHONE_ENABLE !== 'true' || !process.env.TWILIO_WEBHOOK_URL) {
-    logger.info('[TwilioPhone] Skip Twilio HTTP route (disabled or missing TWILIO_WEBHOOK_URL)')
+  if (
+    process.env.TWILIO_PHONE_ENABLE !== 'true' ||
+    !process.env.TWILIO_WEBHOOK_URL
+  ) {
+    logger.info(
+      '[TwilioPhone] Skip Twilio HTTP route (disabled or missing TWILIO_WEBHOOK_URL)'
+    )
     return
   }
 
@@ -28,6 +33,8 @@ export const initTwilioPhoneHttpRoute = (app: Express) => {
     )
 
     res.type('text/xml').send(twimlResponse)
-    logger.info('[TwilioPhone] TwiML sent; Twilio will open Media Stream WebSocket')
+    logger.info(
+      '[TwilioPhone] TwiML sent; Twilio will open Media Stream WebSocket'
+    )
   })
 }

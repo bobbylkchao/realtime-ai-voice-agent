@@ -20,7 +20,7 @@ export const disconnectTheCallParametersJsonSchema = {
 export const disconnectTheCallTool = {
   name: 'disconnect_the_call',
   description:
-    'Call this only when the customer explicitly wants to end the call—e.g. \'thanks, bye\', \'I\'m done\', \'goodbye\', or equivalent. Do not call this if only you suggested ending; the customer must have indicated they are finished.',
+    "Call this only when the customer explicitly wants to end the call—e.g. 'thanks, bye', 'I'm done', 'goodbye', or equivalent. Do not call this if only you suggested ending; the customer must have indicated they are finished.",
   parameters: disconnectTheCallParams,
   parametersJsonSchema: disconnectTheCallParametersJsonSchema,
   execute: async (callId: string, args: unknown): Promise<void> => {

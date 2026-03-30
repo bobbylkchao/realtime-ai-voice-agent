@@ -38,20 +38,24 @@ const tryScheduleHangup = (callId: string): void => {
     const args = s.argumentsJson
     if (!args) return
     // Dynamic import avoids a circular dependency (transfer tool imports websocket close).
-    void import('../tools/transfer-to-human-agent').then(
-      ({ runTransferToHumanAgentHangup }) =>
+    void import('../tools/transfer-to-human-agent')
+      .then(({ runTransferToHumanAgentHangup }) =>
         runTransferToHumanAgentHangup(callId, args)
-    ).catch((err: unknown) => {
-      logger.error(
-        { callId, err },
-        '[AmazonConnectPhone] runTransferToHumanAgentHangup failed'
       )
-    })
+      .catch((err: unknown) => {
+        logger.error(
+          { callId, err },
+          '[AmazonConnectPhone] runTransferToHumanAgentHangup failed'
+        )
+      })
   }, tailMs)
 }
 
 /** Call when a server message is `response.done` and output includes `transfer_to_human_agent`. */
-export const noteTransferResponseDone = (callId: string, message: unknown): void => {
+export const noteTransferResponseDone = (
+  callId: string,
+  message: unknown
+): void => {
   const m = message as {
     type?: string
     response?: {
@@ -61,7 +65,8 @@ export const noteTransferResponseDone = (callId: string, message: unknown): void
   if (m.type !== 'response.done' || !m.response?.output?.length) return
 
   const hasTransfer = m.response.output.some(
-    (item) => item?.type === 'function_call' && item?.name === 'transfer_to_human_agent'
+    (item) =>
+      item?.type === 'function_call' && item?.name === 'transfer_to_human_agent'
   )
   if (!hasTransfer) return
 
@@ -76,7 +81,10 @@ export const noteTransferResponseDone = (callId: string, message: unknown): void
 /**
  * Call when `conversation.item.done` is received for the transfer tool (before executing hangup).
  */
-export const queueTransferToolArguments = (callId: string, argumentsJson: string): void => {
+export const queueTransferToolArguments = (
+  callId: string,
+  argumentsJson: string
+): void => {
   const s: TransferState = stateByCallId.get(callId) ?? {
     transferResponseDone: false,
   }

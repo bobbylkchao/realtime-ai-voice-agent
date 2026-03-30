@@ -90,7 +90,10 @@ export const connectOpenAiSipRealtimeWebSocket = (
   wsByKey.set(key, ws)
 
   ws.on('error', (error) => {
-    const errorDetails = getErrorMessage('connectOpenAiSipRealtimeWebSocket', error)
+    const errorDetails = getErrorMessage(
+      'connectOpenAiSipRealtimeWebSocket',
+      error
+    )
     logger.error(
       { ...errorDetails, callId, contactId },
       '[AmazonConnectPhone] OpenAI SIP WebSocket error'

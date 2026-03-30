@@ -3,9 +3,7 @@
  * These instructions define the agent's role, behavior, and basic rules
  */
 
-export const getGeneralInstructions = (
-  mcpServersCount: number
-): string => {
+export const getGeneralInstructions = (mcpServersCount: number): string => {
   return `
 ## Instructions: General Instructions ##
 1. You are a helpful AI assistant helping customers with their trip bookings over the phone, you are only responsible for trip bookings, do not answer any questions that are not related to trip bookings.
@@ -79,4 +77,3 @@ ${mcpServersCount > 0 ? '19. You have access to tools through MCP server for sea
     - If parameters are missing, collect them from the customer before proceeding
 `.trim()
 }
-

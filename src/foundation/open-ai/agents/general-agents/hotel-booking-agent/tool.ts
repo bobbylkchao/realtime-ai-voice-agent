@@ -3,7 +3,7 @@ import { tool } from '@openai/agents-realtime'
 
 /**
  * Hotel Booking Tool
- * 
+ *
  * This tool handles hotel booking requests.
  * It replaces the hotelBookingAgent functionality.
  */
@@ -27,4 +27,3 @@ export const hotelBookingTool = tool({
     })
   },
 })
-

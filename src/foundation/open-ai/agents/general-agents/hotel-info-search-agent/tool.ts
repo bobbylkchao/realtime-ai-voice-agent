@@ -3,7 +3,7 @@ import { tool } from '@openai/agents-realtime'
 
 /**
  * Hotel Info Search Tool
- * 
+ *
  * This tool provides hotel information based on predefined data.
  * It replaces the hotelInfoSearchAgent functionality.
  */
@@ -12,7 +12,10 @@ export const hotelInfoSearchTool = tool({
   description:
     'Search for hotel information such as amenities, pet-friendly policy, cancellation policy, location, reviews, and other hotel details.',
   parameters: z.object({
-    query: z.string().nullish().describe('The hotel information query (optional)'),
+    query: z
+      .string()
+      .nullish()
+      .describe('The hotel information query (optional)'),
   }),
   execute: async () => {
     // Return predefined hotel information
@@ -44,4 +47,3 @@ export const hotelInfoSearchTool = tool({
     })
   },
 })
-

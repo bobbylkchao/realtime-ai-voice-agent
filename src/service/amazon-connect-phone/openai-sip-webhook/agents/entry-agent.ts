@@ -11,9 +11,12 @@ const buildConnectContextSection = (
   if (meta.contactId) lines.push(`- Contact ID: ${meta.contactId}`)
   if (meta.queueName) lines.push(`- Queue: ${meta.queueName}`)
   if (meta.languageCode) lines.push(`- Language: ${meta.languageCode}`)
-  if (meta.partnerName) lines.push(`- Partner / brand label: ${meta.partnerName}`)
+  if (meta.partnerName)
+    lines.push(`- Partner / brand label: ${meta.partnerName}`)
   if (meta.businessType)
-    lines.push(`- Business type (operational label, not a customer itinerary): ${meta.businessType}`)
+    lines.push(
+      `- Business type (operational label, not a customer itinerary): ${meta.businessType}`
+    )
   if (meta.customerPhoneNumber)
     lines.push(`- Customer phone (from Connect): ${meta.customerPhoneNumber}`)
   if (meta.amazonConnectSourceArn)

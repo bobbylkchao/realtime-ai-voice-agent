@@ -28,9 +28,7 @@ export const handleTwilioPhoneMediaStreamConnection = async (
   withTrace('twilioPhoneMediaStream', async () => {
     let callId = ''
 
-    logger.info(
-      '[TwilioPhone] WebSocket connection established'
-    )
+    logger.info('[TwilioPhone] WebSocket connection established')
 
     // Wrap ws.send to log outgoing messages (for debugging protocol issues)
     // This helps identify what messages are being sent to Twilio
@@ -80,20 +78,20 @@ export const handleTwilioPhoneMediaStreamConnection = async (
     const sendGreetingIfReady = () => {
       if (callId && !isGreetingSent(callId)) {
         try {
-          twilioTransportLayer.sendMessage({
-            type: 'message',
-            role: 'user',
-            content: [
-              {
-                type: 'input_text',
-                text: 'hi',
-              },
-            ],
-          }, {})
-          logger.info(
-            { callId },
-            '[TwilioPhone] Greeting sent'
+          twilioTransportLayer.sendMessage(
+            {
+              type: 'message',
+              role: 'user',
+              content: [
+                {
+                  type: 'input_text',
+                  text: 'hi',
+                },
+              ],
+            },
+            {}
           )
+          logger.info({ callId }, '[TwilioPhone] Greeting sent')
           setGreetingSent(callId)
         } catch {
           logger.info(
@@ -154,22 +152,19 @@ export const handleTwilioPhoneMediaStreamConnection = async (
     session.on(
       'mcp_tool_call_completed',
       (_context: unknown, _agent: unknown, toolCall: unknown) => {
-        logger.info({ callId, toolCall }, '[TwilioPhone] MCP tool call completed')
+        logger.info(
+          { callId, toolCall },
+          '[TwilioPhone] MCP tool call completed'
+        )
       }
     )
 
     session.on('error', (error) => {
-      logger.error(
-        { error, callId },
-        '[TwilioPhone] Session error occurred'
-      )
+      logger.error({ error, callId }, '[TwilioPhone] Session error occurred')
     })
 
     session.on('connection_change', (status) => {
-      logger.info(
-        { status, callId },
-        '[TwilioPhone] Connection status changed'
-      )
+      logger.info({ status, callId }, '[TwilioPhone] Connection status changed')
     })
 
     // Listen to transport events to access raw Twilio messages (Tip #2 from docs)
@@ -185,14 +180,14 @@ export const handleTwilioPhoneMediaStreamConnection = async (
     // Connect IMMEDIATELY (this is critical!)
     // After session is connected, connect MCP servers and update agent
     // Declare mcpServers in outer scope so it's accessible in ws.on('close')
-    // 
+    //
     // NOTE: This is a working version where:
     // - Greeting voice message works correctly
     // - Customer can hear the voice
     // - MCP servers connect after session is established
     // - WebSocket is guaranteed to be open before agent update
     const mcpServers: MCPServerStreamableHttp[] = []
-    
+
     session
       .connect({
         apiKey: openAiApiKey,
@@ -237,7 +232,10 @@ export const handleTwilioPhoneMediaStreamConnection = async (
             // Session is already connected, so WebSocket is open
             // Tracing context is already available from top-level withTrace
             if (mcpServers.length > 0) {
-              const updatedAgent = frontDeskAgentForPhone(mcpServers, mockCustomerPhoneNumber)
+              const updatedAgent = frontDeskAgentForPhone(
+                mcpServers,
+                mockCustomerPhoneNumber
+              )
               try {
                 await session.updateAgent(updatedAgent)
                 logger.info(
@@ -247,7 +245,7 @@ export const handleTwilioPhoneMediaStreamConnection = async (
                   },
                   '[TwilioPhone] Agent updated with MCP servers successfully'
                 )
-                
+
                 // Immediately send greeting after agent is updated (optimization: no need to wait for twilio_message)
                 sendGreetingIfReady()
               } catch (error) {
@@ -261,7 +259,7 @@ export const handleTwilioPhoneMediaStreamConnection = async (
                 { callId },
                 '[TwilioPhone] No MCP servers connected, agent remains unchanged'
               )
-              
+
               // Even without MCP servers, send greeting immediately
               sendGreetingIfReady()
             }
@@ -317,10 +315,7 @@ export const handleTwilioPhoneMediaStreamConnection = async (
     })
 
     ws.on('error', (error) => {
-      logger.error(
-        { error, callId },
-        '[TwilioPhone] WebSocket error occurred'
-      )
+      logger.error({ error, callId }, '[TwilioPhone] WebSocket error occurred')
       greetingRecord.delete(callId)
       callId = ''
     })

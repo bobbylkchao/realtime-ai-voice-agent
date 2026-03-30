@@ -21,10 +21,7 @@ export const acceptOpenAiSipCall = async ({
 }: AcceptOpenAiSipCallParams): Promise<{ ok: boolean; error?: string }> => {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
-    logger.error(
-      { callId },
-      '[AmazonConnectPhone] OPENAI_API_KEY is missing'
-    )
+    logger.error({ callId }, '[AmazonConnectPhone] OPENAI_API_KEY is missing')
     return { ok: false, error: 'OPENAI_API_KEY is missing' }
   }
 

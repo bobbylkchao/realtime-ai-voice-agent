@@ -7,7 +7,11 @@ export const initMcpServers = (app: Express, port: number): void => {
   initPostBookingMcpServer(app, port)
 }
 
-export const mcpServerList: { name: string; url: string, phoneCallOnly: boolean }[] = [
+export const mcpServerList: {
+  name: string
+  url: string
+  phoneCallOnly: boolean
+}[] = [
   {
     name: 'booking-mcp-server',
     url: 'http://localhost:4000/booking-mcp',

@@ -88,8 +88,7 @@ export const handleMessageIfToolCall = async (
 
   if (toolName === transferToHumanAgentTool.name) {
     const raw = m.item.arguments
-    const argsJson =
-      typeof raw === 'string' ? raw : JSON.stringify(raw ?? {})
+    const argsJson = typeof raw === 'string' ? raw : JSON.stringify(raw ?? {})
     queueTransferToolArguments(callId, argsJson)
     return true
   }
