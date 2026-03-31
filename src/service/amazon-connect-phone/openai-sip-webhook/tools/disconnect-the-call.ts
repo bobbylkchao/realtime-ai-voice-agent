@@ -5,11 +5,24 @@ import { getContactId, deleteCall } from '../call-store'
 import { hangUpOpenAiSipCall } from '../handle-call/hang-up-call'
 import { closeOpenAiSipWebSocketForCall } from '../websocket/connect-to-call'
 
-const disconnectTheCallParams = z.object({})
+const disconnectTheCallParams = z.object({
+  summary: z
+    .string()
+    .optional()
+    .describe(
+      'Brief session summary for audit/review: what the customer wanted, outcome, and any notable details.'
+    ),
+})
 
 export const disconnectTheCallParametersJsonSchema = {
   type: 'object',
-  properties: {},
+  properties: {
+    summary: {
+      type: 'string',
+      description:
+        'Brief session summary for audit/review: what the customer wanted, outcome, and any notable details.',
+    },
+  },
   additionalProperties: false,
 } as const
 
@@ -20,16 +33,17 @@ export const disconnectTheCallParametersJsonSchema = {
 export const disconnectTheCallTool = {
   name: 'disconnect_the_call',
   description:
-    "Call this only when the customer explicitly wants to end the call—e.g. 'thanks, bye', 'I'm done', 'goodbye', or equivalent. Do not call this if only you suggested ending; the customer must have indicated they are finished.",
+    "Call this only when the customer explicitly wants to end the call—e.g. 'thanks, bye', 'I'm done', 'goodbye', or equivalent. Do not call this if only you suggested ending; the customer must have indicated they are finished. Provide a brief summary for audit/review.",
   parameters: disconnectTheCallParams,
   parametersJsonSchema: disconnectTheCallParametersJsonSchema,
   execute: async (callId: string, args: unknown): Promise<void> => {
-    disconnectTheCallParams.parse(args ?? {})
+    const parsed = disconnectTheCallParams.parse(args ?? {})
     const contactId = getContactId(callId)
 
     if (contactId && process.env.AMAZON_CONNECT_SDK_ENABLE === 'true') {
       await updateContactAttributes(contactId, {
-        AIVoiceAgent_Disconnect_Reason: 'customer-initiated',
+        AIVoiceAgentHandoff: 'false',
+        AIVoiceAgentConversationSummary: parsed.summary ?? '',
       })
       logger.info(
         { callId, contactId },

@@ -62,7 +62,7 @@ Extend `openai-sip-webhook/types.ts` and `webhook/incoming-call.ts` if your cont
 
 ## Optional: UpdateContactAttributes on hang up
 
-When the model calls `disconnect_the_call`, the server can set Amazon Connect contact attributes **if** the Connect client is initialized:
+When the Connect client is initialized, **`transfer_to_human_agent`** and **`disconnect_the_call`** can set Amazon Connect contact attributes before hanging up the OpenAI leg:
 
 ```env
 AMAZON_CONNECT_SDK_ENABLE=true
@@ -72,7 +72,12 @@ AWS_ACCESS_KEY_ID=...
 AWS_SECRET_ACCESS_KEY=...
 ```
 
-If `AMAZON_CONNECT_SDK_ENABLE` is not `true` or the client fails to init, the tool still closes the OpenAI WebSocket and calls the **hangup** API; attribute updates are skipped.
+If `AMAZON_CONNECT_SDK_ENABLE` is not `true` or the client fails to init, the tools still close the OpenAI WebSocket and call the **hangup** API; attribute updates are skipped.
+
+**Attributes (when the SDK path runs):**
+
+- **`transfer_to_human_agent`:** `AIVoiceAgentHandoff` = `"true"`; `AIVoiceAgentConversationSummary` = optional model `summary` for the next agent; `AIVoiceAgentHandoffPayload` = JSON string of trip intake (from `update_trip_intake`).
+- **`disconnect_the_call`:** `AIVoiceAgentHandoff` = `"false"`; `AIVoiceAgentConversationSummary` = optional model `summary` for audit/review.
 
 ## Customizing behavior
 
@@ -82,7 +87,7 @@ If `AMAZON_CONNECT_SDK_ENABLE` is not `true` or the client fails to init, the to
 
 Nothing in this template’s `accept` body injects hotel names or check-in/out dates from Amazon Connect unless **you** add those fields to `AmazonConnectOpenAiVoiceAgentMetaData`, map them from SIP `User-to-User` in `webhook/incoming-call.ts`, and print them into instructions. Earlier, long Twilio-oriented prompts (`getGeneralInstructions` + booking examples) could also lead the model to **infer** plausible trip details. The current SIP prompt explicitly forbids inventing itinerary details and only uses Connect metadata as routing hints (see `entry-agent.ts` “session context” section).
 
-- **Tools**: `update_trip_intake` (merge name + trip notes), `transfer_to_human_agent` (writes `AIVoiceAgentHandoff` JSON when `AMAZON_CONNECT_SDK_ENABLE=true`, then hangs up the OpenAI call leg), `disconnect_the_call`. Add more tools in `openai-sip-webhook/tools/` and register them in `tools/index.ts` with matching Zod + `parametersJsonSchema`.
+- **Tools**: `update_trip_intake` (merge name + trip notes), `transfer_to_human_agent` / `disconnect_the_call` (set handoff flag, summary, and intake payload as in [Optional: UpdateContactAttributes](#optional-updatecontactattributes-on-hang-up) when `AMAZON_CONNECT_SDK_ENABLE=true`, then hang up the OpenAI call leg). Add more tools in `openai-sip-webhook/tools/` and register them in `tools/index.ts` with matching Zod + `parametersJsonSchema`.
 - **Transfer hangup timing**: If the model speaks a farewell and calls `transfer_to_human_agent` in the same response, hanging up immediately can cut off playback. The server waits for `response.done` (with that tool in `output`), then delays hangup by `SIP_TRANSFER_AUDIO_TAIL_MS` (default 3500). See `websocket/transfer-hangup-scheduler.ts`.
 - **Idle timeout**: `openai-sip-webhook/websocket/connect-to-call.ts` exports `onConversationTimeout` if you want to prompt or hang up after silence.
 

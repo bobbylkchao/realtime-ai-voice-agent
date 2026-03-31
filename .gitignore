@@ -23,6 +23,9 @@ yarn-debug.log*
 yarn-error.log*
 .env
 dist
+
+# Claude Code — local overrides (optional)
+.claude/settings.local.json
 .vscode
 src/test/*
 *.sublime-project

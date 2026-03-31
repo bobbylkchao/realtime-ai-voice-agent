@@ -44,14 +44,13 @@ export const runTransferToHumanAgentHangup = async (
   const parsed = transferSchema.parse(args ?? {})
   const contactId = getContactId(callId)
   const intake = getTripIntake(callId) ?? {}
-  const payload = {
-    ...intake,
-    ...(parsed.summary && { summary: parsed.summary }),
-  }
+  const payload = intake
 
   if (contactId && process.env.AMAZON_CONNECT_SDK_ENABLE === 'true') {
     await updateContactAttributes(contactId, {
-      AIVoiceAgentHandoff: JSON.stringify(payload),
+      AIVoiceAgentHandoff: 'true',
+      AIVoiceAgentConversationSummary: parsed.summary ?? '',
+      AIVoiceAgentHandoffPayload: JSON.stringify(intake),
     })
     logger.info(
       { callId, contactId },

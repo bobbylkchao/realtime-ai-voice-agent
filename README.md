@@ -75,6 +75,12 @@ See **`.env.example`**. Typical keys:
 | [doc/amazon-connect-openai-webhook.md](./doc/amazon-connect-openai-webhook.md) | Connect + OpenAI SIP |
 | [doc/local-testing-twilio-and-amazon-connect-sip.md](./doc/local-testing-twilio-and-amazon-connect-sip.md) | ngrok / tunnels |
 
+## AI coding assistants (Cursor / Claude Code)
+
+- **Cursor:** project rules in [`.cursor/rules/`](./.cursor/rules/) (see `.cursor/rules/project.mdc`).
+- **Shared developer context:** [`AGENTS.md`](./AGENTS.md) and [`CLAUDE.md`](./CLAUDE.md) — same content; update **both** when you change them.
+- **Claude Code:** optional config under [`.claude/`](./.claude/README.md).
+
 ## Scripts
 
 - `npm run dev` — nodemon

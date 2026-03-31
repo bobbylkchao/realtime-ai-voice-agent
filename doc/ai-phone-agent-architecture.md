@@ -69,7 +69,7 @@ Amazon Connect → OpenAI SIP → POST /amazon-connect-phone/incoming-call
 ### Configuration
 
 - Set `AMAZON_CONNECT_PHONE_ENABLE=true` and configure OpenAI to send webhooks to `{BASE_PATH}/incoming-call`.
-- Optional: `AMAZON_CONNECT_SDK_ENABLE=true` plus AWS credentials and `AMAZON_CONNECT_INSTANCE_ID` so tools such as `disconnect_the_call` and `transfer_to_human_agent` can call **UpdateContactAttributes** (e.g. `AIVoiceAgentHandoff` JSON on transfer).
+- Optional: `AMAZON_CONNECT_SDK_ENABLE=true` plus AWS credentials and `AMAZON_CONNECT_INSTANCE_ID` so tools such as `disconnect_the_call` and `transfer_to_human_agent` can call **UpdateContactAttributes** (handoff flag, conversation summary, and trip intake payload—see [amazon-connect-openai-webhook.md](./amazon-connect-openai-webhook.md)).
 
 ### Relationship to Twilio and Connect
 
