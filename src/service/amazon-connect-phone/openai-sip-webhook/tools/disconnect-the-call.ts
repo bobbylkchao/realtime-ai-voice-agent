@@ -65,7 +65,7 @@ export const runDisconnectTheCallHangup = async (
 export const disconnectTheCallTool = {
   name: 'disconnect_the_call',
   description:
-    "Use only when the customer clearly wants to end the call (e.g. thanks/bye/done/goodbye). Do not use if only you suggested hanging up. **Before calling this tool, you must speak a short polite closing in the same assistant turn** (thank them and say goodbye in the call language)—never emit only this tool with no spoken audio. If their last utterance had no transcript, still say a brief goodbye, then call this. Provide `summary`: a brief chronological narrative of the call (topic, customer needs, what you said, who asked to hang up); no PII—use 'Customer' only; no 'Initiator/Reason' labels.",
+    "Last step only: call when the customer clearly wants to end the call. Do not use if only you suggested hanging up. **Hard requirement:** Your response must include **assistant spoken audio (thank-you + goodbye) in the same turn before this tool runs**—same response must not be tool-only (zero speech). Order: speak the closing, then call this tool. If their last utterance had no transcript, infer they may want to end and still say a brief goodbye out loud, then call this. `summary`: short chronological narrative (topic, customer needs, what you said, who asked to hang up); no PII—use 'Customer' only.",
   parameters: disconnectTheCallParams,
   parametersJsonSchema: disconnectTheCallParametersJsonSchema,
   execute: async (callId: string, args: unknown): Promise<void> => {
