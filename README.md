@@ -1,5 +1,9 @@
 # AI Phone Agent Starter Kit
 
+<p align="center">
+  <img src="./doc/assets/ai-phone-agent.png" alt="AI Phone Agent: caller connects via Twilio or Amazon Connect; the backend lets an AI answer and talk on the call." width="720" />
+</p>
+
 **A production-oriented starter kit for building AI agents that answer real phone calls and talk to customers in real time using OpenAI’s [Realtime API](https://platform.openai.com/docs/guides/realtime).**
 
 This project is a **Node.js / TypeScript backend** you connect to **Twilio** or **Amazon Connect**. Callers dial a normal business number; audio flows into your server and to **OpenAI Realtime**, so the AI can listen, speak, run tools (hang up, transfer to a human, collect structured info), and optionally use **[MCP](https://modelcontextprotocol.io/)**-backed tools. It is built for teams that want a **clear, deployable baseline** for **phone-first** voice agents—not a generic demo, but patterns you can ship and replace with your own product logic.
@@ -18,10 +22,6 @@ Two call paths are supported: **Amazon Connect** (SIP → OpenAI Realtime webhoo
 
 <p align="center">
   <img src="./doc/assets/high-level-design-twilio.png" alt="High-level flow: Twilio IVR, HTTP POST for TwiML, WebSocket media stream, AI Phone Agent session with OpenAI Realtime API" width="720" />
-</p>
-
-<p align="center">
-  <img src="./doc/assets/ai-phone-agent.png" alt="AI Phone Agent: caller connects via Twilio or Amazon Connect; the backend lets an AI answer and talk on the call." width="720" />
 </p>
 
 ## Try it (live)
