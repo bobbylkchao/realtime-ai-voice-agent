@@ -17,13 +17,12 @@ export const flightBookingTool = tool({
     returnDate: z.string().nullish().describe('Return date (for round trip)'),
     numberOfPassengers: z.number().nullish().describe('Number of passengers'),
   }),
-  execute: async (input) => 
+  execute: async (input) =>
     // For now, return a confirmation message
     // In production, this would process the actual booking
-     JSON.stringify({
+    JSON.stringify({
       status: 'success',
       message: 'Flight booking request received',
       details: input,
-    })
-  ,
+    }),
 })

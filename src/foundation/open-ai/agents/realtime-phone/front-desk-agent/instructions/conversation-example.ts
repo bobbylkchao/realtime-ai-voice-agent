@@ -4,7 +4,8 @@ import { DEFAULT_BRAND } from '@/service/amazon-connect-phone/openai-sip-webhook
  * This provides concrete examples of how the agent should interact with customers
  */
 
-export const getConversationExample = (phoneNumber: string): string => `
+export const getConversationExample = (phoneNumber: string): string =>
+  `
 Here are examples of real conversations for different scenarios.
 
 **Pattern you MUST follow every time the customer speaks (except the very first greeting):**

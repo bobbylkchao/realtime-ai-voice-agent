@@ -15,7 +15,8 @@ export const setContactId = (callId: string, contactId: string): void => {
   if (contactId) contactIdByCallId.set(callId, contactId)
 }
 
-export const getContactId = (callId: string): string | undefined => contactIdByCallId.get(callId)
+export const getContactId = (callId: string): string | undefined =>
+  contactIdByCallId.get(callId)
 
 export const mergeTripIntake = (
   callId: string,
@@ -25,9 +26,8 @@ export const mergeTripIntake = (
   intakeByCallId.set(callId, { ...existing, ...data })
 }
 
-export const getTripIntake = (
-  callId: string
-): SipTripIntakeData | undefined => intakeByCallId.get(callId)
+export const getTripIntake = (callId: string): SipTripIntakeData | undefined =>
+  intakeByCallId.get(callId)
 
 export const deleteCall = (callId: string): void => {
   contactIdByCallId.delete(callId)

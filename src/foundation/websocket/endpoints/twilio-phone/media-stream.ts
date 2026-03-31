@@ -11,7 +11,7 @@ export const initTwilioPhoneMediaStreamWebSocketServer = (
   })
 
   httpServer.on('upgrade', (request, socket, head) => {
-    const {pathname} = new URL(
+    const { pathname } = new URL(
       request.url || '',
       `http://${request.headers.host}`
     )

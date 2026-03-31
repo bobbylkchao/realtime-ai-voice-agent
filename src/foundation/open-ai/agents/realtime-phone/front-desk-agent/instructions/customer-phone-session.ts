@@ -5,7 +5,8 @@
 
 export const getCustomerPhoneSessionInstructions = (
   phoneNumber: string
-): string => `
+): string =>
+  `
 ## Instructions: Customer's Phone Session ##
 1. Customer's phone number is always ${phoneNumber}.
 2. You have access to the tool \`get_phone_session\` (exact name with underscores) to get phone session based on phone number ${phoneNumber}, please use this tool to get the phone session.

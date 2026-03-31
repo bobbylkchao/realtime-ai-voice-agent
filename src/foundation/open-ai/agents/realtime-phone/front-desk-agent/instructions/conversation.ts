@@ -4,7 +4,8 @@ import { DEFAULT_BRAND } from '@/service/amazon-connect-phone/openai-sip-webhook
  * This defines how the agent should start and conduct conversations
  */
 
-export const getConversationInstructions = (phoneNumber: string): string => `
+export const getConversationInstructions = (phoneNumber: string): string =>
+  `
 ## Instructions: How to start the conversation ##
 1. **MANDATORY FIRST ACTION: When the call connects, IMMEDIATELY call the \`get_phone_session\` tool with phone number ${phoneNumber} to get the customer's phone session data (including hotel name, check-in date, check-out date, number of guests, number of rooms).**
 

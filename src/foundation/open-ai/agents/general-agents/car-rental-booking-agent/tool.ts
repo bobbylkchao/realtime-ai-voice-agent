@@ -17,13 +17,12 @@ export const carRentalBookingTool = tool({
     dropoffDate: z.string().nullish().describe('Drop-off date'),
     carType: z.string().nullish().describe('Car type preference'),
   }),
-  execute: async (input) => 
+  execute: async (input) =>
     // For now, return a confirmation message
     // In production, this would process the actual booking
-     JSON.stringify({
+    JSON.stringify({
       status: 'success',
       message: 'Car rental booking request received',
       details: input,
-    })
-  ,
+    }),
 })

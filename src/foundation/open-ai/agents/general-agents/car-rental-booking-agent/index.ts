@@ -1,6 +1,7 @@
 import { RealtimeAgent } from '@openai/agents-realtime'
 
-export const carRentalBookingAgent = (): RealtimeAgent => new RealtimeAgent({
+export const carRentalBookingAgent = (): RealtimeAgent =>
+  new RealtimeAgent({
     name: 'Car Rental Booking Agent',
     voice: 'cedar',
     instructions: `
