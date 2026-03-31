@@ -6,7 +6,7 @@ import { hangUpOpenAiSipCall } from '../handle-call/hang-up-call'
 import { closeOpenAiSipWebSocketForCall } from '../websocket/connect-to-call'
 
 const summaryDescribe =
-  'Audit summary (no PII): never include the caller’s real name, email, phone, or other identifiers—refer to the caller only as "Customer". State who chose to end the session: "Customer" or "AI agent". Then state briefly why the conversation stopped (e.g. declined to continue planning, goal completed, frustration). Example: "Initiator: Customer. Reason: decided not to proceed with trip planning."'
+  'Short plain narrative of the call for audit (no PII): never include real name, email, phone, or other identifiers—refer to the caller only as "Customer". Write a simple chronological log: what the call was about, what the customer wanted or asked, what the assistant said or offered, and who asked to hang up (Customer or AI agent). Do not use field labels such as "Initiator" or "Reason"—just a few flowing sentences. Use the same language as the conversation when practical. Example: "Customer asked if this line was a specific hotel; assistant said we are a travel service, not the hotel; Customer said they only wanted to reach the hotel and asked to end the call."'
 
 const disconnectTheCallParams = z.object({
   summary: z.string().optional().describe(summaryDescribe),
@@ -65,7 +65,7 @@ export const runDisconnectTheCallHangup = async (
 export const disconnectTheCallTool = {
   name: 'disconnect_the_call',
   description:
-    "Use only when the customer clearly wants to end the call (e.g. thanks/bye/done/goodbye). Do not use if only you suggested hanging up. **Before calling this tool, you must speak a short polite closing in the same assistant turn** (thank them and say goodbye in the call language)—never emit only this tool with no spoken audio. If their last utterance had no transcript, still say a brief goodbye, then call this. Provide `summary` for audit: no real names or PII (use 'Customer' only); who chose to end (Customer vs AI agent); why the conversation stopped.",
+    "Use only when the customer clearly wants to end the call (e.g. thanks/bye/done/goodbye). Do not use if only you suggested hanging up. **Before calling this tool, you must speak a short polite closing in the same assistant turn** (thank them and say goodbye in the call language)—never emit only this tool with no spoken audio. If their last utterance had no transcript, still say a brief goodbye, then call this. Provide `summary`: a brief chronological narrative of the call (topic, customer needs, what you said, who asked to hang up); no PII—use 'Customer' only; no 'Initiator/Reason' labels.",
   parameters: disconnectTheCallParams,
   parametersJsonSchema: disconnectTheCallParametersJsonSchema,
   execute: async (callId: string, args: unknown): Promise<void> => {
